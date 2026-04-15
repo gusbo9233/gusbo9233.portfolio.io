@@ -8,7 +8,9 @@ import {
 import type { GitHubProfile, Project } from "./lib/github";
 
 const githubUsername = import.meta.env.VITE_GITHUB_USERNAME || "gusbo9233";
-const emailAddress = "hello@gustavboberg.dev";
+const emailAddress = "gusbo923@gmail.com";
+
+type Page = "home" | "cv";
 
 const skills = [
   "React",
@@ -36,6 +38,83 @@ const focusAreas = [
       "This portfolio updates from GitHub because I want the page to grow naturally with the things I am building.",
   },
 ];
+
+const cvHighlights = [
+  "Co-developed an award-winning inventory warehouse program for an industrial machinery company.",
+  "Managed application work across the full lifecycle, from development to deployment and maintenance.",
+  "Worked in international teams across Sweden, Poland, India, and Brazil.",
+];
+
+const cvExperience = [
+  {
+    company: "Concentrix",
+    location: "Warszawa, Poland",
+    period: "Jun 2025-Dec 2025",
+    role: "Technical Customer Support",
+    context:
+      "2,000+ customers across major sectors, including Fortune Global 500 brands.",
+    points: [
+      "Supported a Swedish telecom company, Allente, across 75-150 customer calls per week.",
+      "Handled customer-facing troubleshooting in a high-volume technical support environment.",
+    ],
+  },
+  {
+    company: "Infor",
+    location: "Linkoping",
+    period: "Sep 2023-Feb 2024",
+    role: "Software Developer",
+    context:
+      "Global business cloud software provider with 60,000+ customers worldwide.",
+    points: [
+      "Debugged and developed the sales part of the M3 ERP system.",
+      "Used Java and SQL to fix issues and implement new features.",
+    ],
+  },
+  {
+    company: "Norditech",
+    location: "Jonkoping",
+    period: "Sep 2021-May 2022",
+    role: "Software Developer",
+    context:
+      "AI, machine learning, process optimization, and data analysis consultancy.",
+    points: [
+      "Co-developed an awarded inventory warehouse program using camera-based label recognition.",
+      "Wrote Python scripts for machine vision projects using OpenCV and ROS.",
+    ],
+  },
+  {
+    company: "Tetra Pak",
+    location: "Lund",
+    period: "2019-2022",
+    role: "IT Worker",
+    context:
+      "Global market leader in aseptic packaging with 24,000 employees worldwide.",
+    points: [
+      "Worked with Agile methods, Azure, PowerShell, Adobe Experience Manager, SAP Hybris, and Photoshop.",
+      "Migrated website content, maintained product information, and supported global communication teams.",
+      "Built automation for image processing and streamlined SAP customer data cleanup workflows.",
+    ],
+  },
+];
+
+const cvEducation = [
+  {
+    degree: "BSc in Computer Science",
+    school: "Linkoping University",
+    period: "2017-2025",
+    detail:
+      'Student thesis: "Interactive Visualisation of Medical Patient Data" for Karolinska Institute.',
+  },
+  {
+    degree: "BSc in Economics",
+    school: "Linkoping University",
+    period: "2022-2025",
+  },
+];
+
+function getPageFromHash(): Page {
+  return window.location.hash === "#cv" ? "cv" : "home";
+}
 
 interface AppState {
   status: "loading" | "ready" | "error";
@@ -87,7 +166,110 @@ function ProjectCard({ project, featured = false }: ProjectCardProps) {
   );
 }
 
+function CvPage() {
+  return (
+    <main className="cv-page">
+      <section className="cv-hero">
+        <div>
+          <p className="section-label">Curriculum Vitae</p>
+          <h1>Gustav Boberg</h1>
+          <p>
+            Software developer with experience across product development,
+            support, automation, ERP systems, machine vision, and web content
+            platforms.
+          </p>
+        </div>
+        <aside className="cv-contact">
+          <a href={`mailto:${emailAddress}`}>{emailAddress}</a>
+          <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noreferrer">
+            github.com/{githubUsername}
+          </a>
+          <a href="https://linkedin.com/in/gustav-boberg" target="_blank" rel="noreferrer">
+            linkedin.com/in/gustav-boberg
+          </a>
+          <span>Lund, Sweden</span>
+        </aside>
+      </section>
+
+      <section className="cv-section cv-summary">
+        <div>
+          <p className="section-label">Snapshot</p>
+          <h2>Experience that connects software, operations, and users.</h2>
+        </div>
+        <div className="cv-highlight-list">
+          {cvHighlights.map((highlight) => (
+            <p key={highlight}>{highlight}</p>
+          ))}
+        </div>
+      </section>
+
+      <section className="cv-section">
+        <div className="cv-section__header">
+          <p className="section-label">Experience</p>
+          <h2>AI/IT Projects</h2>
+        </div>
+        <div className="timeline">
+          {cvExperience.map((job) => (
+            <article className="timeline-item" key={`${job.company}-${job.period}`}>
+              <div className="timeline-item__meta">
+                <span>{job.period}</span>
+                <strong>{job.location}</strong>
+              </div>
+              <div className="timeline-item__body">
+                <h3>{job.company}</h3>
+                <p className="timeline-item__role">{job.role}</p>
+                <p>{job.context}</p>
+                <ul>
+                  {job.points.map((point) => (
+                    <li key={point}>{point}</li>
+                  ))}
+                </ul>
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="cv-grid">
+        <div className="cv-section">
+          <p className="section-label">Technical</p>
+          <h2>Programming</h2>
+          <div className="skill-cloud cv-skill-cloud" aria-label="CV technical skills">
+            {["Python", "Java", "SQL", "TypeScript", "REST API", "C++", "HTML"].map((skill) => (
+              <span key={skill}>{skill}</span>
+            ))}
+          </div>
+        </div>
+
+        <div className="cv-section">
+          <p className="section-label">Education</p>
+          <h2>Studies</h2>
+          <div className="education-list">
+            {cvEducation.map((item) => (
+              <article key={item.degree}>
+                <h3>{item.degree}</h3>
+                <p>{item.school} · {item.period}</p>
+                {item.detail ? <p>{item.detail}</p> : null}
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="cv-section cv-languages">
+        <p className="section-label">Languages</p>
+        <div className="language-list">
+          <span>Swedish: native</span>
+          <span>English: fluent</span>
+          <span>German: light conversation</span>
+        </div>
+      </section>
+    </main>
+  );
+}
+
 export default function App() {
+  const [page, setPage] = useState<Page>(() => getPageFromHash());
   const [query, setQuery] = useState("");
   const [language, setLanguage] = useState("All");
   const [state, setState] = useState<AppState>({
@@ -97,6 +279,18 @@ export default function App() {
     error: "",
   });
   const deferredQuery = useDeferredValue(query);
+
+  useEffect(() => {
+    function handleHashChange() {
+      setPage(getPageFromHash());
+    }
+
+    window.addEventListener("hashchange", handleHashChange);
+
+    return () => {
+      window.removeEventListener("hashchange", handleHashChange);
+    };
+  }, []);
 
   useEffect(() => {
     let isActive = true;
@@ -173,13 +367,15 @@ export default function App() {
   return (
     <div className="page-shell">
       <header className="topbar">
-        <div className="brand">
+        <a className="brand" href="#home">
           <span className="brand__mark" />
           <span>{githubUsername}</span>
-        </div>
+        </a>
         <nav>
+          <a href="#home">Home</a>
           <a href="#profile">Profile</a>
           <a href="#projects">Projects</a>
+          <a href="#cv">CV</a>
           <a href="#about">About</a>
           <a href="#contact">Contact</a>
           <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noreferrer">
@@ -188,7 +384,8 @@ export default function App() {
         </nav>
       </header>
 
-      <main>
+      {page === "cv" ? <CvPage /> : (
+      <main id="home">
         <section className="hero">
           <div className="hero__copy">
             <p className="section-label">Personal Portfolio</p>
@@ -403,6 +600,7 @@ export default function App() {
           ) : null}
         </section>
       </main>
+      )}
     </div>
   );
 }
