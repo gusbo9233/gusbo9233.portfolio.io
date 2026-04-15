@@ -8,6 +8,34 @@ import {
 import type { GitHubProfile, Project } from "./lib/github";
 
 const githubUsername = import.meta.env.VITE_GITHUB_USERNAME || "gusbo9233";
+const emailAddress = "hello@gustavboberg.dev";
+
+const skills = [
+  "React",
+  "TypeScript",
+  "Vite",
+  "API integrations",
+  "Responsive UI",
+  "GitHub workflows",
+];
+
+const focusAreas = [
+  {
+    title: "Frontend Craft",
+    description:
+      "I like turning ideas into fast, focused interfaces with React, TypeScript, and thoughtful interaction details.",
+  },
+  {
+    title: "Practical Builds",
+    description:
+      "My projects lean toward useful tools, clean deployment flows, and code that is easy to revisit later.",
+  },
+  {
+    title: "Always Learning",
+    description:
+      "This portfolio updates from GitHub because I want the page to grow naturally with the things I am building.",
+  },
+];
 
 interface AppState {
   status: "loading" | "ready" | "error";
@@ -150,8 +178,10 @@ export default function App() {
           <span>{githubUsername}</span>
         </div>
         <nav>
+          <a href="#profile">Profile</a>
           <a href="#projects">Projects</a>
           <a href="#about">About</a>
+          <a href="#contact">Contact</a>
           <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noreferrer">
             GitHub
           </a>
@@ -161,31 +191,29 @@ export default function App() {
       <main>
         <section className="hero">
           <div className="hero__copy">
-            <p className="section-label">React Portfolio</p>
+            <p className="section-label">Personal Portfolio</p>
             <h1>
-              Building a portfolio that stays in sync with your GitHub work.
+              Hi, I am Gustav. I build polished web experiences with React.
             </h1>
             <p className="hero__lede">
-              This site pulls public repositories from GitHub, highlights your
-              strongest work, and can optionally enrich each repo with a
-              lightweight <code>portfolio.yaml</code> file for better titles,
-              descriptions, and tags.
+              I enjoy creating clean, responsive interfaces and small developer
+              tools that solve real problems. This page is my home base: part
+              introduction, part project archive, and part snapshot of what I am
+              exploring right now.
             </p>
             <div className="hero__actions">
-              <a href="#projects">Browse projects</a>
+              <a href="#projects">See my work</a>
               <a
                 className="hero__secondary"
-                href={`https://github.com/${githubUsername}`}
-                target="_blank"
-                rel="noreferrer"
+                href={`mailto:${emailAddress}`}
               >
-                Open GitHub profile
+                Contact me
               </a>
             </div>
           </div>
 
           <aside className="hero__panel">
-            <p className="section-label">Live Snapshot</p>
+            <p className="section-label">At a glance</p>
             <div className="stat-grid">
               <div>
                 <span>Repositories</span>
@@ -205,34 +233,100 @@ export default function App() {
               </div>
             </div>
             <div className="hero__panel-footer">
-              <p>{state.profile?.bio || "GitHub-powered developer portfolio."}</p>
+              <p>
+                {state.profile?.bio ||
+                  "Frontend-focused developer building with React, TypeScript, and curiosity."}
+              </p>
             </div>
           </aside>
         </section>
 
-        <section className="about" id="about">
-          <div className="about__card">
-            <p className="section-label">How it works</p>
-            <h2>Minimal maintenance, better storytelling.</h2>
+        <section className="profile-strip" id="profile">
+          <div className="profile-card">
+            <p className="section-label">Profile</p>
+            <h2>Developer, maker, and careful finisher.</h2>
             <p>
-              Repositories are fetched live from the GitHub API. If a repo
-              contains a <code>portfolio.yaml</code>, this portfolio uses it to
-              override the default repo title and description and to add custom
-              tags.
+              I am drawn to projects where design, code, and usefulness meet. I
+              care about how an interface feels, how the code is organized, and
+              whether someone can actually use the thing without friction.
             </p>
           </div>
-          <div className="about__steps">
+          <div className="skill-cloud" aria-label="Skills">
+            {skills.map((skill) => (
+              <span key={skill}>{skill}</span>
+            ))}
+          </div>
+        </section>
+
+        <section className="about" id="about">
+          <div className="about__card">
+            <p className="section-label">About</p>
+            <h2>I like building things that feel simple on the surface.</h2>
+            <p>
+              The best products hide complexity without ignoring it. I try to
+              bring that mindset into my work: clear structure, reliable
+              behavior, and enough personality that the result does not feel
+              generic.
+            </p>
+          </div>
+          <div className="about__steps focus-list">
+            {focusAreas.map((area, index) => (
+              <div key={area.title}>
+                <span>{String(index + 1).padStart(2, "0")}</span>
+                <div>
+                  <h3>{area.title}</h3>
+                  <p>{area.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section className="contact-panel" id="contact">
+          <div>
+            <p className="section-label">Contact</p>
+            <h2>Have an idea, project, or collaboration in mind?</h2>
+            <p>
+              I am always happy to talk about web projects, portfolio ideas,
+              frontend craft, or ways to turn a rough concept into something
+              people can use.
+            </p>
+          </div>
+          <div className="contact-panel__actions">
+            <a href={`mailto:${emailAddress}`}>Email me</a>
+            <a
+              className="contact-panel__secondary"
+              href={`https://github.com/${githubUsername}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              View GitHub
+            </a>
+          </div>
+        </section>
+
+        <section className="github-note">
+          <div>
+            <p className="section-label">Live Projects</p>
+            <h2>My project list updates from GitHub.</h2>
+            <p>
+              Public repositories are fetched from the GitHub API. If a repo has
+              a <code>portfolio.yaml</code>, the site can use it for a more
+              polished title, description, and custom tags.
+            </p>
+          </div>
+          <div className="github-note__steps">
             <div>
               <span>01</span>
-              <p>Fetch profile and repositories from GitHub.</p>
+              <p>Fetch profile and repositories.</p>
             </div>
             <div>
               <span>02</span>
-              <p>Read optional metadata from each repository manifest.</p>
+              <p>Enrich selected work with custom metadata.</p>
             </div>
             <div>
               <span>03</span>
-              <p>Render a searchable gallery with live stats and links.</p>
+              <p>Render searchable, live project cards.</p>
             </div>
           </div>
         </section>
@@ -241,7 +335,7 @@ export default function App() {
           <div className="projects__header">
             <div>
               <p className="section-label">Selected Work</p>
-              <h2>Repository-backed projects</h2>
+              <h2>Projects from my GitHub</h2>
             </div>
             <div className="projects__controls">
               <input

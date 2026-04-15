@@ -111,8 +111,12 @@ code {
 
 .hero__copy,
 .hero__panel,
+.profile-card,
+.skill-cloud,
 .about__card,
 .about__steps,
+.contact-panel,
+.github-note,
 .project-card,
 .status-panel {
   position: relative;
@@ -125,8 +129,12 @@ code {
 
 .hero__copy,
 .hero__panel,
+.profile-card,
+.skill-cloud,
 .about__card,
 .about__steps,
+.contact-panel,
+.github-note,
 .status-panel {
   border-radius: 1.6rem;
 }
@@ -146,7 +154,10 @@ code {
 
 .hero h1,
 .projects h2,
-.about h2 {
+.about h2,
+.profile-card h2,
+.contact-panel h2,
+.github-note h2 {
   margin: 0;
   font-family: "Space Grotesk", sans-serif;
   font-size: clamp(2.8rem, 6vw, 5.2rem);
@@ -156,6 +167,9 @@ code {
 
 .hero__lede,
 .about p,
+.profile-card p,
+.contact-panel p,
+.github-note p,
 .hero__panel p,
 .project-card__description {
   color: var(--muted);
@@ -218,6 +232,46 @@ code {
   border-top: 1px solid var(--line);
 }
 
+.profile-strip {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: 1.5rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.profile-card,
+.skill-cloud {
+  padding: 2rem;
+}
+
+.profile-card {
+  background:
+    linear-gradient(135deg, rgba(157, 196, 255, 0.08), transparent 45%),
+    var(--panel);
+}
+
+.profile-card h2,
+.contact-panel h2,
+.github-note h2 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+}
+
+.skill-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  gap: 0.75rem;
+}
+
+.skill-cloud span {
+  padding: 0.75rem 1rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  color: var(--text);
+  font-weight: 800;
+}
+
 .about {
   display: grid;
   grid-template-columns: 1.2fr 1fr;
@@ -257,6 +311,88 @@ code {
   font-family: "Space Grotesk", sans-serif;
   font-size: 1.4rem;
   font-weight: 700;
+}
+
+.focus-list div div {
+  display: block;
+  padding: 0;
+  border-bottom: 0;
+}
+
+.focus-list h3 {
+  margin: 0 0 0.35rem;
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 1.2rem;
+}
+
+.focus-list p {
+  margin: 0;
+}
+
+.contact-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2rem;
+  align-items: center;
+  padding: 2rem;
+  margin: 1.5rem 0 2rem;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(255, 211, 161, 0.18), transparent 30%),
+    linear-gradient(135deg, rgba(108, 140, 255, 0.14), rgba(14, 24, 46, 0.78));
+}
+
+.contact-panel__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-width: 180px;
+}
+
+.contact-panel__actions a {
+  padding: 0.95rem 1.2rem;
+  border-radius: 999px;
+  text-align: center;
+  background: var(--warm);
+  color: #08111f;
+  font-weight: 900;
+}
+
+.contact-panel__actions .contact-panel__secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--line);
+}
+
+.github-note {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 0.8fr);
+  gap: 1.5rem;
+  padding: 2rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.github-note__steps {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.github-note__steps div {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.github-note__steps span {
+  color: var(--warm);
+  font-family: "Space Grotesk", sans-serif;
+  font-weight: 900;
+}
+
+.github-note__steps p {
+  margin: 0;
 }
 
 .projects {
@@ -401,7 +537,10 @@ code {
 
 @media (max-width: 920px) {
   .hero,
+  .profile-strip,
   .about,
+  .contact-panel,
+  .github-note,
   .featured-grid,
   .project-grid {
     grid-template-columns: 1fr;
@@ -418,9 +557,18 @@ code {
 
   .hero__copy,
   .hero__panel,
+  .profile-card,
+  .skill-cloud,
   .about__card,
-  .about__steps {
+  .about__steps,
+  .contact-panel,
+  .github-note {
     padding: 1.4rem;
+  }
+
+  .contact-panel__actions {
+    flex-direction: row;
+    flex-wrap: wrap;
   }
 }
 
