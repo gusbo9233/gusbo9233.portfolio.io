@@ -12,33 +12,6 @@ const emailAddress = "gusbo923@gmail.com";
 
 type Page = "home" | "cv";
 
-const skills = [
-  "React",
-  "TypeScript",
-  "Vite",
-  "API integrations",
-  "Responsive UI",
-  "GitHub workflows",
-];
-
-const focusAreas = [
-  {
-    title: "Frontend Craft",
-    description:
-      "I like turning ideas into fast, focused interfaces with React, TypeScript, and thoughtful interaction details.",
-  },
-  {
-    title: "Practical Builds",
-    description:
-      "My projects lean toward useful tools, clean deployment flows, and code that is easy to revisit later.",
-  },
-  {
-    title: "Always Learning",
-    description:
-      "This portfolio updates from GitHub because I want the page to grow naturally with the things I am building.",
-  },
-];
-
 const cvHighlights = [
   "Co-developed an award-winning inventory warehouse program for an industrial machinery company.",
   "Managed application work across the full lifecycle, from development to deployment and maintenance.",
@@ -373,10 +346,8 @@ export default function App() {
         </a>
         <nav>
           <a href="#home">Home</a>
-          <a href="#profile">Profile</a>
           <a href="#projects">Projects</a>
           <a href="#cv">CV</a>
-          <a href="#about">About</a>
           <a href="#contact">Contact</a>
           <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noreferrer">
             GitHub
@@ -386,118 +357,22 @@ export default function App() {
 
       {page === "cv" ? <CvPage /> : (
       <main id="home">
-        <section className="hero">
-          <div className="hero__copy">
-            <p className="section-label">Personal Portfolio</p>
-            <h1>
-              Hi, I am Gustav. I build polished web experiences with React.
-            </h1>
-            <p className="hero__lede">
-              I enjoy creating clean, responsive interfaces and small developer
-              tools that solve real problems. This page is my home base: part
-              introduction, part project archive, and part snapshot of what I am
-              exploring right now.
-            </p>
-            <div className="hero__actions">
-              <a href="#projects">See my work</a>
-              <a
-                className="hero__secondary"
-                href={`mailto:${emailAddress}`}
-              >
-                Contact me
-              </a>
-            </div>
-          </div>
-
-          <aside className="hero__panel">
-            <p className="section-label">At a glance</p>
-            <div className="stat-grid">
-              <div>
-                <span>Repositories</span>
-                <strong>{state.profile?.public_repos ?? "--"}</strong>
-              </div>
-              <div>
-                <span>Followers</span>
-                <strong>{state.profile?.followers ?? "--"}</strong>
-              </div>
-              <div>
-                <span>Total stars</span>
-                <strong>{state.status === "ready" ? formatCompactNumber(totalStars) : "--"}</strong>
-              </div>
-              <div>
-                <span>Curated projects</span>
-                <strong>{state.status === "ready" ? state.projects.length : "--"}</strong>
-              </div>
-            </div>
-            <div className="hero__panel-footer">
-              <p>
-                {state.profile?.bio ||
-                  "Frontend-focused developer building with React, TypeScript, and curiosity."}
-              </p>
-            </div>
-          </aside>
-        </section>
-
-        <section className="profile-strip" id="profile">
-          <div className="profile-card">
-            <p className="section-label">Profile</p>
-            <h2>Developer, maker, and careful finisher.</h2>
-            <p>
-              I am drawn to projects where design, code, and usefulness meet. I
-              care about how an interface feels, how the code is organized, and
-              whether someone can actually use the thing without friction.
-            </p>
-          </div>
-          <div className="skill-cloud" aria-label="Skills">
-            {skills.map((skill) => (
-              <span key={skill}>{skill}</span>
-            ))}
-          </div>
-        </section>
-
-        <section className="about" id="about">
-          <div className="about__card">
-            <p className="section-label">About</p>
-            <h2>I like building things that feel simple on the surface.</h2>
-            <p>
-              The best products hide complexity without ignoring it. I try to
-              bring that mindset into my work: clear structure, reliable
-              behavior, and enough personality that the result does not feel
-              generic.
-            </p>
-          </div>
-          <div className="about__steps focus-list">
-            {focusAreas.map((area, index) => (
-              <div key={area.title}>
-                <span>{String(index + 1).padStart(2, "0")}</span>
-                <div>
-                  <h3>{area.title}</h3>
-                  <p>{area.description}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-
         <section className="contact-panel" id="contact">
           <div>
             <p className="section-label">Contact</p>
-            <h2>Have an idea, project, or collaboration in mind?</h2>
+            <h2>Gustav Boberg</h2>
             <p>
-              I am always happy to talk about web projects, portfolio ideas,
-              frontend craft, or ways to turn a rough concept into something
-              people can use.
+              Software developer in Lund with experience across web, automation,
+              ERP systems, machine vision, support, and deployment workflows.
             </p>
           </div>
           <div className="contact-panel__actions">
             <a href={`mailto:${emailAddress}`}>Email me</a>
             <a
               className="contact-panel__secondary"
-              href={`https://github.com/${githubUsername}`}
-              target="_blank"
-              rel="noreferrer"
+              href="#cv"
             >
-              View GitHub
+              View CV
             </a>
           </div>
         </section>
