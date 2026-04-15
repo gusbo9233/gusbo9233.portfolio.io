@@ -13,77 +13,163 @@ const emailAddress = "gusbo923@gmail.com";
 type Page = "home" | "cv";
 
 const cvHighlights = [
-  "Co-developed an award-winning inventory warehouse program for an industrial machinery company.",
-  "Managed application work across the full lifecycle, from development to deployment and maintenance.",
-  "Worked in international teams across Sweden, Poland, India, and Brazil.",
+  "Co-developed award-winning program, streamlined processes, and collaborated in 8–10 person teams.",
+  "Managed applications throughout full lifecycle—from development to deployment and maintenance.",
 ];
 
 const cvExperience = [
   {
     company: "Concentrix",
     location: "Warszawa, Poland",
-    period: "Jun 2025-Dec 2025",
-    role: "Technical Customer Support",
+    period: "Jun 2025–Dec 2025",
     context:
-      "2,000+ customers across major sectors, including Fortune Global 500 brands.",
-    points: [
-      "Supported a Swedish telecom company, Allente, across 75-150 customer calls per week.",
-      "Handled customer-facing troubleshooting in a high-volume technical support environment.",
+      "2,000+ customers across all major sectors, including iconic Fortune Global 500 brands.",
+    roles: [
+      {
+        title: "Technical Customer Support",
+        points: [
+          "Supported (75–150 calls/week) Swedish telecom company Allente (merger: Canal Digital, Viasat Consumer).",
+        ],
+      },
     ],
   },
   {
     company: "Infor",
-    location: "Linkoping",
-    period: "Sep 2023-Feb 2024",
-    role: "Software Developer",
+    location: "Linköping",
+    period: "Sep 2023–Feb 2024",
     context:
-      "Global business cloud software provider with 60,000+ customers worldwide.",
-    points: [
-      "Debugged and developed the sales part of the M3 ERP system.",
-      "Used Java and SQL to fix issues and implement new features.",
+      "60,000+ customers worldwide. Global leader in business cloud software products for industry-specific markets.",
+    roles: [
+      {
+        title: "Software Developer",
+        points: [
+          "Worked on debugging and developing sales part of M3 ERP system.",
+          "Used Java and SQL to fix issues and implement new features to improve system.",
+        ],
+      },
     ],
   },
   {
     company: "Norditech",
-    location: "Jonkoping",
-    period: "Sep 2021-May 2022",
-    role: "Software Developer",
+    location: "Jönköping",
+    period: "Sep 2021–May 2022",
     context:
-      "AI, machine learning, process optimization, and data analysis consultancy.",
-    points: [
-      "Co-developed an awarded inventory warehouse program using camera-based label recognition.",
-      "Wrote Python scripts for machine vision projects using OpenCV and ROS.",
+      "IT consulting specializing in AI, machine learning, process optimization of mechanical industry, and data analysis.",
+    note:
+      'Hired by small startup (6 people), which was later awarded for "Young Innovators" and "Incubator of the Year."',
+    roles: [
+      {
+        title: "Software Developer",
+        points: [
+          "Co-developed awarded inventory warehouse program for 147 MSEK revenue industrial machinery manufacturing company. Program controlled cameras in warehouse and took pictures of labels. Based on pictures, program performed inventory tasks.",
+          "Wrote Python scripts for machine vision projects using OpenCV and ROS.",
+        ],
+      },
     ],
   },
   {
     company: "Tetra Pak",
     location: "Lund",
-    period: "2019-2022",
-    role: "IT Worker",
+    period: "2019–2022",
     context:
-      "Global market leader in aseptic packaging with 24,000 employees worldwide.",
-    points: [
-      "Worked with Agile methods, Azure, PowerShell, Adobe Experience Manager, SAP Hybris, and Photoshop.",
-      "Migrated website content, maintained product information, and supported global communication teams.",
-      "Built automation for image processing and streamlined SAP customer data cleanup workflows.",
+      "Listed market leader (30%–35% of global aseptic packaging market) with 24,000 employees worldwide.",
+    roles: [
+      {
+        title: "IT Worker, Jun 2022–Aug 2022",
+        description:
+          "Studied Agile methods, Azure, and PowerShell. Worked on 2 teams in India and Brazil: Communication Solutions and Adoption & Collaboration Solutions, supporting global sites with infoscreen management and other tasks.",
+      },
+      {
+        title: "IT Worker, Jun 2021–Aug 2021",
+        points: [
+          "Maintained Tetra Pak website using Adobe Experience Manager. Updated content and fixed issues.",
+          "Migrated all processing insights pages to tetrapak.com; built and edited content in Adobe.",
+          "Edited Tetra Pak product information in SAP Hybris (PIM) and images and animations in Photoshop.",
+        ],
+      },
+      {
+        title: "IT Worker, Jun 2020–Aug 2020",
+        points: [
+          "Initiated and developed automation for image processing (cropping, renaming, and smart upscaling with AI).",
+          "Migrated Tetra Pak website from SharePoint to Adobe as part of 8-person team.",
+        ],
+      },
+      {
+        title: "IT Worker, Jun 2019–Aug 2019",
+        points: [
+          "Initiated and wrote program that streamlined process of cleaning up customer data in SAP.",
+          "Updated machine names in database (part of Smart Sales project; CRM, CPQ, and marketing automation).",
+          "Made tetrapak.com and customer portals more attractive and customized; added features.",
+        ],
+      },
     ],
   },
+];
+
+const cvTechnicalSkills = [
+  "Python",
+  "Java",
+  "SQL",
+  "TypeScript",
+  "REST API",
+  "C++",
+  "HTML",
+];
+
+const cvLanguages = [
+  "English (fluent)",
+  "Swedish (native)",
+  "German (light conversation)",
 ];
 
 const cvEducation = [
   {
     degree: "BSc in Computer Science",
-    school: "Linkoping University",
-    period: "2017-2025",
+    school: "Linköping University",
+    period: "2017–2025",
     detail:
-      'Student thesis: "Interactive Visualisation of Medical Patient Data" for Karolinska Institute.',
+      'Student thesis: "Interactive Visualisation of Medical Patient Data" (working prototype for Karolinska Institute)',
   },
   {
     degree: "BSc in Economics",
-    school: "Linkoping University",
-    period: "2022-2025",
+    school: "Linköping University",
+    period: "2022–2025",
   },
 ];
+
+const cvContactLinks = [
+  {
+    label: "+46 76 166 14 28",
+    href: "tel:+46761661428",
+  },
+  {
+    label: "github.com/gusbo9233",
+    href: "https://github.com/gusbo9233",
+  },
+  {
+    label: "linkedin.com/in/gustav-boberg",
+    href: "https://linkedin.com/in/gustav-boberg",
+  },
+  {
+    label: "gusbo923@gmail.com",
+    href: "mailto:gusbo923@gmail.com",
+  },
+];
+
+interface CvRole {
+  title: string;
+  description?: string;
+  points?: string[];
+}
+
+interface CvExperienceItem {
+  company: string;
+  location: string;
+  period: string;
+  context: string;
+  note?: string;
+  roles: CvRole[];
+}
 
 function getPageFromHash(): Page {
   return window.location.hash === "#cv" ? "cv" : "home";
@@ -146,28 +232,22 @@ function CvPage() {
         <div>
           <p className="section-label">Curriculum Vitae</p>
           <h1>Gustav Boberg</h1>
-          <p>
-            Software developer with experience across product development,
-            support, automation, ERP systems, machine vision, and web content
-            platforms.
-          </p>
+          <p>Software Developer</p>
         </div>
         <aside className="cv-contact">
-          <a href={`mailto:${emailAddress}`}>{emailAddress}</a>
-          <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noreferrer">
-            github.com/{githubUsername}
-          </a>
-          <a href="https://linkedin.com/in/gustav-boberg" target="_blank" rel="noreferrer">
-            linkedin.com/in/gustav-boberg
-          </a>
-          <span>Lund, Sweden</span>
+          {cvContactLinks.map((link) => (
+            <a key={link.href} href={link.href} target={link.href.startsWith("http") ? "_blank" : undefined} rel={link.href.startsWith("http") ? "noreferrer" : undefined}>
+              {link.label}
+            </a>
+          ))}
+          <span>Lund</span>
         </aside>
       </section>
 
       <section className="cv-section cv-summary">
         <div>
           <p className="section-label">Snapshot</p>
-          <h2>Experience that connects software, operations, and users.</h2>
+          <h2>Software Developer</h2>
         </div>
         <div className="cv-highlight-list">
           {cvHighlights.map((highlight) => (
@@ -182,7 +262,7 @@ function CvPage() {
           <h2>AI/IT Projects</h2>
         </div>
         <div className="timeline">
-          {cvExperience.map((job) => (
+          {(cvExperience as CvExperienceItem[]).map((job) => (
             <article className="timeline-item" key={`${job.company}-${job.period}`}>
               <div className="timeline-item__meta">
                 <span>{job.period}</span>
@@ -190,13 +270,21 @@ function CvPage() {
               </div>
               <div className="timeline-item__body">
                 <h3>{job.company}</h3>
-                <p className="timeline-item__role">{job.role}</p>
                 <p>{job.context}</p>
-                <ul>
-                  {job.points.map((point) => (
-                    <li key={point}>{point}</li>
-                  ))}
-                </ul>
+                {job.note ? <p>{job.note}</p> : null}
+                {job.roles.map((role) => (
+                  <div className="timeline-role" key={role.title}>
+                    <p className="timeline-item__role">{role.title}</p>
+                    {role.description ? <p>{role.description}</p> : null}
+                    {role.points?.length ? (
+                      <ul>
+                        {role.points.map((point) => (
+                          <li key={point}>{point}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                  </div>
+                ))}
               </div>
             </article>
           ))}
@@ -205,11 +293,17 @@ function CvPage() {
 
       <section className="cv-grid">
         <div className="cv-section">
-          <p className="section-label">Technical</p>
-          <h2>Programming</h2>
+          <p className="section-label">Programming & Languages</p>
+          <h2>Technical</h2>
           <div className="skill-cloud cv-skill-cloud" aria-label="CV technical skills">
-            {["Python", "Java", "SQL", "TypeScript", "REST API", "C++", "HTML"].map((skill) => (
+            {cvTechnicalSkills.map((skill) => (
               <span key={skill}>{skill}</span>
+            ))}
+          </div>
+          <h2 className="cv-subheading">Languages</h2>
+          <div className="language-list">
+            {cvLanguages.map((language) => (
+              <span key={language}>{language}</span>
             ))}
           </div>
         </div>
@@ -221,20 +315,11 @@ function CvPage() {
             {cvEducation.map((item) => (
               <article key={item.degree}>
                 <h3>{item.degree}</h3>
-                <p>{item.school} · {item.period}</p>
+                <p>{item.school}, {item.period}</p>
                 {item.detail ? <p>{item.detail}</p> : null}
               </article>
             ))}
           </div>
-        </div>
-      </section>
-
-      <section className="cv-section cv-languages">
-        <p className="section-label">Languages</p>
-        <div className="language-list">
-          <span>Swedish: native</span>
-          <span>English: fluent</span>
-          <span>German: light conversation</span>
         </div>
       </section>
     </main>
