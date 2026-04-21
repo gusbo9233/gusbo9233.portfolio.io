@@ -17,6 +17,7 @@ import type { Folder, PortfolioItem, Profile } from "./lib/portfolio";
 interface UserPageProps {
   username: string;
   viewerId: string | null;
+  mode?: "reader" | "edit";
 }
 
 interface LoadedData {
@@ -34,7 +35,7 @@ interface PlacedProject {
   item: PortfolioItem | null;
 }
 
-export default function UserPage({ username, viewerId }: UserPageProps) {
+export default function UserPage({ username, viewerId, mode = "reader" }: UserPageProps) {
   const [data, setData] = useState<LoadedData | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error" | "not_found">("loading");
   const [error, setError] = useState("");
@@ -88,11 +89,10 @@ export default function UserPage({ username, viewerId }: UserPageProps) {
   const isOwner = viewerId === data.profile.id;
   const buckets = buildBuckets(data);
 
-  return isOwner ? (
-    <OwnerView data={data} buckets={buckets} onChange={reload} />
-  ) : (
-    <ReaderView data={data} buckets={buckets} />
-  );
+  if (mode === "edit" && isOwner) {
+    return <OwnerView data={data} buckets={buckets} onChange={reload} />;
+  }
+  return <ReaderView data={data} buckets={buckets} isOwner={isOwner} />;
 }
 
 function buildBuckets({ folders, projects, items }: LoadedData): Map<string, PlacedProject[]> {
@@ -141,7 +141,7 @@ function ProfileHero({ profile }: { profile: Profile }) {
   );
 }
 
-function ReaderView({ data, buckets }: { data: LoadedData; buckets: Map<string, PlacedProject[]> }) {
+function ReaderView({ data, buckets, isOwner }: { data: LoadedData; buckets: Map<string, PlacedProject[]>; isOwner: boolean }) {
   const sortedFolders = data.folders.slice().sort((a, b) => a.position - b.position);
 
   const sections: { title: string; placed: PlacedProject[]; isFirst: boolean }[] = [];
@@ -157,6 +157,11 @@ function ReaderView({ data, buckets }: { data: LoadedData; buckets: Map<string, 
   return (
     <main className="user-page">
       <ProfileHero profile={data.profile} />
+      {isOwner ? (
+        <div className="user-hero__actions">
+          <a className="auth-button" href={`#u/${data.profile.username}/edit`}>Edit page</a>
+        </div>
+      ) : null}
 
       {sections.length === 0 ? (
         <p className="user-folder__empty">No public projects yet.</p>

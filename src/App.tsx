@@ -11,7 +11,7 @@ const defaultUsername = import.meta.env.VITE_GITHUB_USERNAME || "gusbo9233";
 type Page =
   | { kind: "home" }
   | { kind: "cv" }
-  | { kind: "user"; username: string };
+  | { kind: "user"; username: string; edit: boolean };
 
 const cvHighlights = [
   "Co-developed award-winning program, streamlined processes, and collaborated in 8–10 person teams.",
@@ -163,8 +163,8 @@ interface CvExperienceItem {
 function getPageFromHash(): Page {
   const hash = window.location.hash;
   if (hash === "#cv") return { kind: "cv" };
-  const userMatch = hash.match(/^#u\/([^/?#]+)/);
-  if (userMatch) return { kind: "user", username: decodeURIComponent(userMatch[1]) };
+  const userMatch = hash.match(/^#u\/([^/?#]+)(\/edit)?/);
+  if (userMatch) return { kind: "user", username: decodeURIComponent(userMatch[1]), edit: Boolean(userMatch[2]) };
   return { kind: "home" };
 }
 
@@ -353,7 +353,7 @@ export default function App() {
       {page.kind === "cv" ? (
         <CvPage />
       ) : page.kind === "user" ? (
-        <UserPage username={page.username} viewerId={viewerId} />
+        <UserPage username={page.username} viewerId={viewerId} mode={page.edit ? "edit" : "reader"} />
       ) : (
         <HomePage />
       )}
