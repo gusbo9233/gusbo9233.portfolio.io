@@ -112,6 +112,11 @@ export async function renameFolder(id: string, name: string): Promise<void> {
   if (error) throw error;
 }
 
+export async function setFolderPosition(id: string, position: number): Promise<void> {
+  const { error } = await supabase.from("folders").update({ position }).eq("id", id);
+  if (error) throw error;
+}
+
 export async function deleteFolder(id: string): Promise<void> {
   const { error } = await supabase.from("folders").delete().eq("id", id);
   if (error) throw error;

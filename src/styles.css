@@ -62,6 +62,10 @@ code {
   padding-bottom: 4rem;
 }
 
+.page-shell--wide {
+  width: min(1560px, calc(100% - 1rem));
+}
+
 .topbar {
   position: sticky;
   top: 0;
@@ -246,6 +250,26 @@ code {
   padding: 3rem 0 1rem;
 }
 
+.tabbed-page {
+  max-width: none;
+  margin: 1rem 0 0;
+  padding-top: 0;
+  padding-inline: clamp(0.5rem, 1.6vw, 1.5rem);
+  gap: 1.25rem;
+}
+
+.cv-page--reader {
+  padding-top: 0;
+}
+
+.user-page__toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .cv-hero {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(260px, 0.36fr);
@@ -274,21 +298,69 @@ code {
 .cv-contact a {
   color: var(--warm);
   font-weight: 800;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .cv-contact span {
   color: var(--muted);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.cv-layout {
+  display: grid;
+  grid-template-columns: clamp(280px, 24vw, 420px) minmax(0, 1fr);
+  gap: clamp(0.9rem, 1.5vw, 1.5rem);
+  align-items: start;
+}
+
+.cv-sidebar {
+  display: grid;
+  gap: 1.5rem;
+  align-content: start;
+}
+
+.cv-main {
+  min-width: 0;
+}
+
+.cv-sidebar__section {
+  margin-bottom: 0;
+}
+
+.cv-contact--sidebar {
+  justify-content: flex-start;
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  backdrop-filter: none;
+  gap: 0.65rem;
 }
 
 .cv-section {
-  padding: 2rem;
-  margin-bottom: 1.5rem;
+  padding: 1.6rem;
+  margin-bottom: 1.25rem;
 }
 
 .cv-summary {
   display: grid;
-  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
-  gap: 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+.cv-main .cv-section h2 {
+  font-size: clamp(2rem, 3.2vw, 3.4rem);
+  line-height: 1.02;
+  letter-spacing: -0.045em;
+  overflow-wrap: anywhere;
+}
+
+.cv-main > .section-label {
+  margin-top: 0;
 }
 
 .cv-highlight-list {
@@ -298,7 +370,7 @@ code {
 
 .cv-highlight-list p {
   margin: 0;
-  padding: 1rem;
+  padding: 1rem 1.1rem;
   border-radius: 1rem;
   background: rgba(255, 255, 255, 0.045);
   border: 1px solid rgba(255, 255, 255, 0.06);
@@ -362,10 +434,11 @@ code {
   margin-top: 0.45rem;
 }
 
-.cv-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-  gap: 1.5rem;
+.cv-sidebar .cv-section h2 {
+  font-size: clamp(1.9rem, 4vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  overflow-wrap: anywhere;
 }
 
 .cv-skill-cloud {
@@ -712,9 +785,9 @@ code {
 @media (max-width: 920px) {
   .hero,
   .cv-hero,
+  .cv-layout,
   .cv-summary,
   .timeline-item,
-  .cv-grid,
   .profile-strip,
   .about,
   .contact-panel,
@@ -733,10 +806,17 @@ code {
     width: min(100% - 1.25rem, 1180px);
   }
 
+  .page-shell--wide {
+    width: min(100% - 1.25rem, 1180px);
+  }
+
+  .tabbed-page {
+    padding-inline: 0;
+  }
+
   .hero__copy,
   .hero__panel,
   .cv-hero,
-  .cv-contact,
   .cv-section,
   .profile-card,
   .skill-cloud,
@@ -750,6 +830,14 @@ code {
   .contact-panel__actions {
     flex-direction: row;
     flex-wrap: wrap;
+  }
+
+  .cv-contact {
+    padding: 1.4rem;
+  }
+
+  .cv-contact--sidebar {
+    padding: 0;
   }
 }
 
@@ -776,6 +864,11 @@ code {
 
   .hero h1 {
     font-size: 2.7rem;
+  }
+
+  .tabbed-page {
+    margin-top: 0.5rem;
+    gap: 1rem;
   }
 }
 
@@ -875,3 +968,204 @@ code {
 .profile-card__body h3 { margin: 0 0 0.15rem; }
 .profile-card__handle { margin: 0; color: var(--muted); font-size: 0.85rem; }
 .profile-card__bio { margin: 0.4rem 0 0; color: var(--muted); font-size: 0.9rem; }
+
+.my-pages-grid {
+  align-items: stretch;
+}
+
+.my-pages-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.my-pages-card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: auto;
+}
+
+.my-pages-card__actions a:not(.auth-button) {
+  padding: 0.85rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+}
+
+/* Horizontal scrolling project row: shows up to 4 square tiles, slides for more */
+.scroll-row {
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 0.25rem 0 1rem;
+  scrollbar-color: var(--accent-strong) transparent;
+}
+.scroll-row::-webkit-scrollbar { height: 8px; }
+.scroll-row::-webkit-scrollbar-thumb {
+  background: var(--accent-strong);
+  border-radius: 4px;
+}
+.scroll-row__item {
+  flex: 0 0 calc((100% - 3rem) / 4);
+  max-width: 320px;
+  min-width: 220px;
+  scroll-snap-align: start;
+}
+.scroll-row__item > .project-card {
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.scroll-row__item .project-card__description {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+@media (max-width: 900px) {
+  .scroll-row__item { flex-basis: calc((100% - 2rem) / 3); }
+}
+@media (max-width: 640px) {
+  .scroll-row__item { flex-basis: calc((100% - 1rem) / 2); min-width: 180px; }
+}
+
+.user-tabs {
+  display: flex;
+  gap: 0.35rem;
+  width: fit-content;
+  padding: 0.3rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.035);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
+  backdrop-filter: blur(16px);
+  margin: 1rem 0 1.5rem;
+}
+.user-tabs__tab {
+  padding: 0.65rem 1.05rem;
+  border-radius: 999px;
+  color: inherit;
+  text-decoration: none;
+  opacity: 0.7;
+  font-weight: 500;
+  transform: translateY(0);
+  transition:
+    opacity 180ms ease,
+    background-color 220ms ease,
+    color 220ms ease,
+    transform 220ms ease,
+    box-shadow 220ms ease;
+}
+.user-tabs__tab:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+.user-tabs__tab:focus-visible {
+  opacity: 1;
+  outline: 2px solid rgba(255,255,255,0.35);
+  outline-offset: 2px;
+}
+.user-tabs__tab--active {
+  opacity: 1;
+  color: #fff;
+  background: rgba(255,255,255,0.12);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.12),
+    0 10px 24px rgba(0,0,0,0.18);
+}
+
+.page-content {
+  view-transition-name: page-content;
+}
+
+.page-content > * {
+  animation: page-fade-in 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(page-content),
+::view-transition-new(page-content) {
+  animation-duration: 240ms;
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+::view-transition-old(page-content) {
+  animation-name: page-fade-out;
+}
+
+::view-transition-new(page-content) {
+  animation-name: page-fade-in;
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes page-fade-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .user-tabs__tab,
+  .page-content > * {
+    animation: none;
+    transition: none;
+  }
+
+  ::view-transition-old(page-content),
+  ::view-transition-new(page-content) {
+    animation: none;
+  }
+}
+
+.cv-edit .cv-section { display: flex; flex-direction: column; gap: 0.75rem; }
+.cv-edit__field { display: flex; flex-direction: column; gap: 0.25rem; }
+.cv-edit__field > span { font-size: 0.85rem; opacity: 0.75; }
+.cv-edit input[type="text"],
+.cv-edit textarea {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.05);
+  color: inherit;
+  font: inherit;
+}
+.cv-edit textarea { min-height: 3rem; resize: vertical; }
+.cv-edit__list { border: 1px solid rgba(255,255,255,0.08); border-radius: 0.75rem; padding: 1rem; }
+.cv-edit__list-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+.cv-edit__row { display: flex; gap: 0.5rem; align-items: flex-start; margin-bottom: 0.5rem; }
+.cv-edit__row > input,
+.cv-edit__row > textarea { flex: 1; }
+.cv-edit__row-actions { display: flex; gap: 0.25rem; flex-wrap: wrap; }
+.cv-edit__block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border: 1px dashed rgba(255,255,255,0.1);
+  border-radius: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+.cv-edit__experience { border-style: solid; border-color: rgba(255,255,255,0.15); }
+.cv-edit__roles, .cv-edit__points { margin-top: 0.5rem; padding-left: 0.75rem; border-left: 2px solid rgba(255,255,255,0.1); }
+.cv-edit button { cursor: pointer; }

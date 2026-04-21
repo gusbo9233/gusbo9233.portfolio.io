@@ -1,18 +1,22 @@
-import { useEffect, useState } from "react";
-import { fetchGitHubData } from "./lib/github";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import type { Project } from "./lib/github";
 import { ProjectCard } from "./ProjectCard";
 import {
   createFolder,
   deleteFolder,
-  fetchFolders,
-  fetchItems,
-  fetchProfileByUsername,
+  setFolderPosition,
   renameFolder,
   updateProfile,
   upsertItem,
 } from "./lib/portfolio";
 import type { Folder, PortfolioItem, Profile } from "./lib/portfolio";
+import {
+  getCachedUserPageData,
+  invalidateUserPageData,
+  loadUserPageData,
+  prefetchCvPageData,
+} from "./lib/pageData";
+import UserTabs from "./UserTabs";
 
 interface UserPageProps {
   username: string;
@@ -25,6 +29,7 @@ interface LoadedData {
   folders: Folder[];
   items: PortfolioItem[];
   projects: Project[];
+  githubError: string | null;
 }
 
 const UNFILED = "__unfiled__";
@@ -36,32 +41,34 @@ interface PlacedProject {
 }
 
 export default function UserPage({ username, viewerId, mode = "reader" }: UserPageProps) {
-  const [data, setData] = useState<LoadedData | null>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "error" | "not_found">("loading");
+  const [data, setData] = useState<LoadedData | null>(() => getCachedUserPageData(username) ?? null);
+  const [status, setStatus] = useState<"loading" | "ready" | "error" | "not_found">(() =>
+    getCachedUserPageData(username) ? "ready" : "loading",
+  );
   const [error, setError] = useState("");
   const [version, setVersion] = useState(0);
 
   useEffect(() => {
     let active = true;
-    setStatus("loading");
+    const cached = getCachedUserPageData(username);
+    if (cached) {
+      setData(cached);
+      setStatus("ready");
+    } else {
+      setStatus("loading");
+    }
 
     (async () => {
       try {
-        const profile = await fetchProfileByUsername(username);
-        if (!profile) {
+        const nextData = await loadUserPageData(username, { force: version > 0 });
+        if (!nextData) {
           if (active) setStatus("not_found");
           return;
         }
-        const [folders, items, gh] = await Promise.all([
-          fetchFolders(profile.id),
-          fetchItems(profile.id),
-          profile.github_username
-            ? fetchGitHubData(profile.github_username).catch(() => ({ projects: [] as Project[], profile: null }))
-            : Promise.resolve({ projects: [] as Project[], profile: null }),
-        ]);
         if (!active) return;
-        setData({ profile, folders, items, projects: gh.projects });
+        setData(nextData);
         setStatus("ready");
+        prefetchCvPageData(username);
       } catch (err) {
         if (!active) return;
         setError((err as Error).message);
@@ -74,7 +81,12 @@ export default function UserPage({ username, viewerId, mode = "reader" }: UserPa
     };
   }, [username, version]);
 
-  const reload = () => setVersion((v) => v + 1);
+  const reload = () => {
+    invalidateUserPageData(username);
+    setVersion((v) => v + 1);
+  };
+
+  const buckets = useMemo(() => (data ? buildBuckets(data) : null), [data]);
 
   if (status === "loading") {
     return <main className="user-page"><p>Loading...</p></main>;
@@ -87,12 +99,11 @@ export default function UserPage({ username, viewerId, mode = "reader" }: UserPa
   }
 
   const isOwner = viewerId === data.profile.id;
-  const buckets = buildBuckets(data);
 
   if (mode === "edit" && isOwner) {
-    return <OwnerView data={data} buckets={buckets} onChange={reload} />;
+    return <OwnerView data={data} buckets={buckets!} onChange={reload} />;
   }
-  return <ReaderView data={data} buckets={buckets} isOwner={isOwner} />;
+  return <ReaderView data={data} buckets={buckets!} isOwner={isOwner} />;
 }
 
 function buildBuckets({ folders, projects, items }: LoadedData): Map<string, PlacedProject[]> {
@@ -123,67 +134,49 @@ function buildBuckets({ folders, projects, items }: LoadedData): Map<string, Pla
   return map;
 }
 
-function ProfileHero({ profile }: { profile: Profile }) {
-  return (
-    <header className="user-hero">
-      <div>
-        <p className="section-label">Portfolio</p>
-        <h1>{profile.display_name || profile.username}</h1>
-        <p className="user-hero__username">@{profile.username}</p>
-        {profile.bio ? <p>{profile.bio}</p> : null}
-        {profile.github_username ? (
-          <a href={`https://github.com/${profile.github_username}`} target="_blank" rel="noreferrer">
-            github.com/{profile.github_username}
-          </a>
-        ) : null}
-      </div>
-    </header>
-  );
-}
-
 function ReaderView({ data, buckets, isOwner }: { data: LoadedData; buckets: Map<string, PlacedProject[]>; isOwner: boolean }) {
   const sortedFolders = data.folders.slice().sort((a, b) => a.position - b.position);
 
-  const sections: { title: string; placed: PlacedProject[]; isFirst: boolean }[] = [];
-  sortedFolders.forEach((f, idx) => {
+  const sections: { key: string; title: string; placed: PlacedProject[] }[] = [];
+  sortedFolders.forEach((f) => {
     const list = buckets.get(f.id) ?? [];
-    if (list.length > 0) sections.push({ title: f.name, placed: list, isFirst: idx === 0 });
+    if (list.length > 0) sections.push({ key: f.id, title: f.name, placed: list });
   });
   const unfiled = buckets.get(UNFILED) ?? [];
   if (unfiled.length > 0) {
-    sections.push({ title: sections.length === 0 ? "Projects" : "Other projects", placed: unfiled, isFirst: sections.length === 0 });
+    sections.push({ key: UNFILED, title: sections.length === 0 ? "Projects" : "Other projects", placed: unfiled });
   }
 
   return (
-    <main className="user-page">
-      <ProfileHero profile={data.profile} />
-      {isOwner ? (
-        <div className="user-hero__actions">
-          <a className="auth-button" href={`#u/${data.profile.username}/edit`}>Edit page</a>
+    <main className="user-page user-page--projects tabbed-page">
+      <UserTabs username={data.profile.username} active="projects" />
+
+      {data.githubError ? (
+        <div className="status-panel status-panel--error" role="status">
+          GitHub projects are temporarily unavailable. {data.githubError}
         </div>
       ) : null}
 
       {sections.length === 0 ? (
+        data.githubError ? (
+          <p className="user-folder__empty">Project data could not be loaded from GitHub right now.</p>
+        ) : (
         <p className="user-folder__empty">No public projects yet.</p>
+        )
       ) : (
         sections.map((section) => (
-          <section className="projects" key={section.title}>
+          <section className="projects" key={section.key}>
             <div className="projects__header">
               <div>
-                <p className="section-label">{section.isFirst ? "Selected Work" : "Projects"}</p>
+                <p className="section-label">Projects</p>
                 <h2>{section.title}</h2>
               </div>
             </div>
-            {section.isFirst && section.placed.length > 0 ? (
-              <div className="featured-grid">
-                {section.placed.slice(0, 3).map((p, i) => (
-                  <ProjectCard key={p.project.id} project={p.project} featured={i === 0} />
-                ))}
-              </div>
-            ) : null}
-            <div className="project-grid">
-              {(section.isFirst ? section.placed.slice(3) : section.placed).map((p) => (
-                <ProjectCard key={p.project.id} project={p.project} />
+            <div className="scroll-row" role="list">
+              {section.placed.map((p) => (
+                <div className="scroll-row__item" role="listitem" key={p.project.id}>
+                  <ProjectCard project={p.project} />
+                </div>
               ))}
             </div>
           </section>
@@ -203,47 +196,67 @@ function OwnerView({
   onChange: () => void;
 }) {
   const { profile, folders } = data;
+  const [isPending, startTransition] = useTransition();
 
-  async function handleAddFolder() {
+  const run = (fn: () => Promise<void>) =>
+    startTransition(async () => {
+      await fn();
+      onChange();
+    });
+
+  function handleAddFolder() {
     const name = window.prompt("Folder name?");
     if (!name) return;
-    await createFolder(profile.id, name.trim(), folders.length);
-    onChange();
+    run(() => createFolder(profile.id, name.trim(), folders.length).then(() => {}));
   }
 
-  async function handleRenameFolder(folder: Folder) {
+  function handleRenameFolder(folder: Folder) {
     const name = window.prompt("New folder name", folder.name);
     if (!name || name.trim() === folder.name) return;
-    await renameFolder(folder.id, name.trim());
-    onChange();
+    run(() => renameFolder(folder.id, name.trim()));
   }
 
-  async function handleDeleteFolder(folder: Folder) {
+  function handleDeleteFolder(folder: Folder) {
     if (!window.confirm(`Delete folder "${folder.name}"? Projects inside become unfiled.`)) return;
-    await deleteFolder(folder.id);
-    onChange();
+    run(() => deleteFolder(folder.id));
   }
 
-  async function handleSetFolder(placed: PlacedProject, folderId: string | null) {
-    await upsertItem(profile.id, placed.project.name, {
-      folder_id: folderId,
-      hidden: false,
-      position: placed.item?.position ?? 0,
+  function handleMoveFolder(folder: Folder, direction: -1 | 1) {
+    const ordered = folders.slice().sort((a, b) => a.position - b.position);
+    const idx = ordered.findIndex((f) => f.id === folder.id);
+    const swapIdx = idx + direction;
+    if (swapIdx < 0 || swapIdx >= ordered.length) return;
+    const other = ordered[swapIdx];
+    run(async () => {
+      await Promise.all([
+        setFolderPosition(folder.id, swapIdx),
+        setFolderPosition(other.id, idx),
+      ]);
     });
-    onChange();
   }
 
-  async function handleToggleHidden(placed: PlacedProject) {
+  function handleSetFolder(placed: PlacedProject, folderId: string | null) {
+    run(() =>
+      upsertItem(profile.id, placed.project.name, {
+        folder_id: folderId,
+        hidden: placed.item?.hidden ?? false,
+        position: placed.item?.position ?? 0,
+      }).then(() => {}),
+    );
+  }
+
+  function handleToggleHidden(placed: PlacedProject) {
     const nextHidden = !(placed.item?.hidden ?? false);
-    await upsertItem(profile.id, placed.project.name, {
-      hidden: nextHidden,
-      folder_id: placed.item?.folder_id ?? null,
-      position: placed.item?.position ?? 0,
-    });
-    onChange();
+    run(() =>
+      upsertItem(profile.id, placed.project.name, {
+        hidden: nextHidden,
+        folder_id: placed.item?.folder_id ?? null,
+        position: placed.item?.position ?? 0,
+      }).then(() => {}),
+    );
   }
 
-  async function handleReorder(placed: PlacedProject, direction: -1 | 1) {
+  function handleReorder(placed: PlacedProject, direction: -1 | 1) {
     const folderKey = placed.item?.hidden
       ? HIDDEN
       : placed.item?.folder_id ?? UNFILED;
@@ -252,26 +265,26 @@ function OwnerView({
     const swapIdx = idx + direction;
     if (swapIdx < 0 || swapIdx >= siblings.length) return;
     const other = siblings[swapIdx];
-    await Promise.all([
-      upsertItem(profile.id, placed.project.name, {
-        folder_id: placed.item?.folder_id ?? null,
-        hidden: placed.item?.hidden ?? false,
-        position: swapIdx,
-      }),
-      upsertItem(profile.id, other.project.name, {
-        folder_id: other.item?.folder_id ?? null,
-        hidden: other.item?.hidden ?? false,
-        position: idx,
-      }),
-    ]);
-    onChange();
+    run(async () => {
+      await Promise.all([
+        upsertItem(profile.id, placed.project.name, {
+          folder_id: placed.item?.folder_id ?? null,
+          hidden: placed.item?.hidden ?? false,
+          position: swapIdx,
+        }),
+        upsertItem(profile.id, other.project.name, {
+          folder_id: other.item?.folder_id ?? null,
+          hidden: other.item?.hidden ?? false,
+          position: idx,
+        }),
+      ]);
+    });
   }
 
-  async function handleEditBio() {
+  function handleEditBio() {
     const bio = window.prompt("Bio", profile.bio ?? "");
     if (bio === null) return;
-    await updateProfile(profile.id, { bio });
-    onChange();
+    run(() => updateProfile(profile.id, { bio }));
   }
 
   function renderBucket(key: string, title: string, folder?: Folder, isHidden = false) {
@@ -282,6 +295,8 @@ function OwnerView({
           <h2>{title}</h2>
           {folder ? (
             <div className="user-folder__actions">
+              <button type="button" onClick={() => handleMoveFolder(folder, -1)}>↑</button>
+              <button type="button" onClick={() => handleMoveFolder(folder, 1)}>↓</button>
               <button type="button" onClick={() => handleRenameFolder(folder)}>Rename</button>
               <button type="button" onClick={() => handleDeleteFolder(folder)}>Delete</button>
             </div>
@@ -326,29 +341,22 @@ function OwnerView({
   const sortedFolders = folders.slice().sort((a, b) => a.position - b.position);
 
   return (
-    <main className="user-page">
-      <header className="user-hero">
-        <div>
-          <p className="section-label">Portfolio (editing)</p>
-          <h1>{profile.display_name || profile.username}</h1>
-          <p className="user-hero__username">@{profile.username}</p>
-          {profile.bio ? <p>{profile.bio}</p> : null}
-          {profile.github_username ? (
-            <a href={`https://github.com/${profile.github_username}`} target="_blank" rel="noreferrer">
-              github.com/{profile.github_username}
-            </a>
-          ) : null}
-        </div>
+    <main className="user-page user-page--projects" aria-busy={isPending}>
+      <div className="user-page__toolbar">
+        <p className="section-label">Projects{isPending ? " — saving…" : ""}</p>
         <div className="user-hero__actions">
           <button type="button" onClick={handleEditBio}>Edit bio</button>
           <button type="button" onClick={handleAddFolder}>+ New folder</button>
-          <a href={`#u/${profile.username}?preview=1`} onClick={(e) => {
-            e.preventDefault();
-            window.location.hash = `#u/${profile.username}`;
-            window.location.reload();
-          }}>Preview as visitor</a>
+          <a href={`#u/${profile.username}`}>Preview as visitor</a>
         </div>
-      </header>
+      </div>
+      <UserTabs username={profile.username} active="projects" />
+
+      {data.githubError ? (
+        <div className="status-panel status-panel--error" role="status">
+          GitHub projects are temporarily unavailable. {data.githubError}
+        </div>
+      ) : null}
 
       {sortedFolders.map((f) => renderBucket(f.id, f.name, f))}
       {renderBucket(UNFILED, "Unfiled")}
