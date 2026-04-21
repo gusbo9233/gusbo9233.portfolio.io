@@ -32,6 +32,10 @@ jobs:
 
       - name: Build
         run: npm run build
+        env:
+          VITE_GITHUB_USERNAME: gusbo9233
+          VITE_SUPABASE_URL: https://dmmiwiqhxsbtmlgzrhay.supabase.co
+          VITE_SUPABASE_ANON_KEY: sb_publishable_b1r6UGNuvah4fl2eT5jqvA_WTowSvXD
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
