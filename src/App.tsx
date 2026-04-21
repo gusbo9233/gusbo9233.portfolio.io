@@ -6,11 +6,19 @@ import {
   formatDate,
 } from "./lib/github";
 import type { GitHubProfile, Project } from "./lib/github";
+import { signInWithGitHub, signOut, supabase } from "./lib/supabase";
+import type { Session } from "@supabase/supabase-js";
+import UserPage from "./UserPage";
+import { fetchMyProfile } from "./lib/portfolio";
+import type { Profile } from "./lib/portfolio";
 
 const githubUsername = import.meta.env.VITE_GITHUB_USERNAME || "gusbo9233";
 const emailAddress = "gusbo923@gmail.com";
 
-type Page = "home" | "cv";
+type Page =
+  | { kind: "home" }
+  | { kind: "cv" }
+  | { kind: "user"; username: string };
 
 const cvHighlights = [
   "Co-developed award-winning program, streamlined processes, and collaborated in 8–10 person teams.",
@@ -172,7 +180,11 @@ interface CvExperienceItem {
 }
 
 function getPageFromHash(): Page {
-  return window.location.hash === "#cv" ? "cv" : "home";
+  const hash = window.location.hash;
+  if (hash === "#cv") return { kind: "cv" };
+  const userMatch = hash.match(/^#u\/([^/?#]+)/);
+  if (userMatch) return { kind: "user", username: decodeURIComponent(userMatch[1]) };
+  return { kind: "home" };
 }
 
 interface AppState {
@@ -328,6 +340,8 @@ function CvPage() {
 
 export default function App() {
   const [page, setPage] = useState<Page>(() => getPageFromHash());
+  const [session, setSession] = useState<Session | null>(null);
+  const [myProfile, setMyProfile] = useState<Profile | null>(null);
   const [query, setQuery] = useState("");
   const [language, setLanguage] = useState("All");
   const [state, setState] = useState<AppState>({
@@ -337,6 +351,46 @@ export default function App() {
     error: "",
   });
   const deferredQuery = useDeferredValue(query);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session);
+    });
+
+    const { data: listener } = supabase.auth.onAuthStateChange(
+      (_event, nextSession) => {
+        setSession(nextSession);
+      },
+    );
+
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!session) {
+      setMyProfile(null);
+      return;
+    }
+    let active = true;
+    // Profile trigger inserts asynchronously; retry a couple times if missing.
+    async function load(attempt = 0): Promise<void> {
+      const profile = await fetchMyProfile(session!.user.id).catch(() => null);
+      if (!active) return;
+      if (profile) {
+        setMyProfile(profile);
+        return;
+      }
+      if (attempt < 3) {
+        setTimeout(() => load(attempt + 1), 500);
+      }
+    }
+    load();
+    return () => {
+      active = false;
+    };
+  }, [session]);
 
   useEffect(() => {
     function handleHashChange() {
@@ -437,10 +491,24 @@ export default function App() {
           <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noreferrer">
             GitHub
           </a>
+          {myProfile ? (
+            <a href={`#u/${myProfile.username}`}>My page</a>
+          ) : null}
+          {session ? (
+            <button type="button" className="auth-button" onClick={() => signOut()}>
+              Sign out{session.user.user_metadata?.user_name ? ` (${session.user.user_metadata.user_name})` : ""}
+            </button>
+          ) : (
+            <button type="button" className="auth-button" onClick={() => signInWithGitHub()}>
+              Sign in with GitHub
+            </button>
+          )}
         </nav>
       </header>
 
-      {page === "cv" ? <CvPage /> : (
+      {page.kind === "user" ? (
+        <UserPage username={page.username} viewerId={session?.user.id ?? null} />
+      ) : page.kind === "cv" ? <CvPage /> : (
       <main id="home">
         <section className="contact-panel" id="contact">
           <div>

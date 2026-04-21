@@ -778,3 +778,65 @@ code {
     font-size: 2.7rem;
   }
 }
+
+.user-page {
+  max-width: 960px;
+  margin: 2rem auto;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+.user-hero {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.user-hero__username {
+  color: var(--muted);
+  margin: 0.25rem 0 0.75rem;
+}
+.user-hero__actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.user-folder {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.user-folder__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+.user-folder__header h2 { margin: 0; }
+.user-folder__actions { display: flex; gap: 0.5rem; }
+.user-folder__empty { color: var(--muted); margin: 0; font-style: italic; }
+.user-folder__add { margin-top: 0.5rem; }
+.user-folder__add label { display: flex; gap: 0.5rem; align-items: center; color: var(--muted); }
+.user-item-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.user-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255,255,255,0.02);
+}
+.user-item h3 { margin: 0 0 0.25rem; }
+.user-item p { margin: 0 0 0.25rem; color: var(--muted); }
+.user-item__actions { display: flex; gap: 0.35rem; align-items: center; flex-shrink: 0; }
+.user-item__actions button, .user-folder__actions button, .user-hero__actions button, .user-folder__add select, .user-item__actions select {
+  background: var(--panel-strong);
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 0.35rem 0.6rem;
+  cursor: pointer;
+}
