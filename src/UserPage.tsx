@@ -1,17 +1,16 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { fetchGitHubData } from "./lib/github";
 import type { Project } from "./lib/github";
+import { ProjectCard } from "./ProjectCard";
 import {
-  addItem,
   createFolder,
   deleteFolder,
   fetchFolders,
   fetchItems,
   fetchProfileByUsername,
-  moveItem,
-  removeItem,
   renameFolder,
   updateProfile,
+  upsertItem,
 } from "./lib/portfolio";
 import type { Folder, PortfolioItem, Profile } from "./lib/portfolio";
 
@@ -28,6 +27,12 @@ interface LoadedData {
 }
 
 const UNFILED = "__unfiled__";
+const HIDDEN = "__hidden__";
+
+interface PlacedProject {
+  project: Project;
+  item: PortfolioItem | null;
+}
 
 export default function UserPage({ username, viewerId }: UserPageProps) {
   const [data, setData] = useState<LoadedData | null>(null);
@@ -81,45 +86,118 @@ export default function UserPage({ username, viewerId }: UserPageProps) {
   }
 
   const isOwner = viewerId === data.profile.id;
+  const buckets = buildBuckets(data);
 
-  return (
-    <UserPageContent
-      data={data}
-      isOwner={isOwner}
-      onChange={reload}
-    />
+  return isOwner ? (
+    <OwnerView data={data} buckets={buckets} onChange={reload} />
+  ) : (
+    <ReaderView data={data} buckets={buckets} />
   );
 }
 
-interface ContentProps {
-  data: LoadedData;
-  isOwner: boolean;
-  onChange: () => void;
+function buildBuckets({ folders, projects, items }: LoadedData): Map<string, PlacedProject[]> {
+  const itemByRepo = new Map<string, PortfolioItem>();
+  for (const it of items) itemByRepo.set(it.repo_full_name, it);
+
+  const map = new Map<string, PlacedProject[]>();
+  map.set(UNFILED, []);
+  map.set(HIDDEN, []);
+  for (const f of folders) map.set(f.id, []);
+
+  for (const project of projects) {
+    const item = itemByRepo.get(project.name) ?? null;
+    const key = item?.hidden
+      ? HIDDEN
+      : item?.folder_id && map.has(item.folder_id)
+        ? item.folder_id
+        : UNFILED;
+    map.get(key)!.push({ project, item });
+  }
+  for (const [, list] of map) {
+    list.sort((a, b) => {
+      const ap = a.item?.position ?? Number.MAX_SAFE_INTEGER;
+      const bp = b.item?.position ?? Number.MAX_SAFE_INTEGER;
+      return ap - bp;
+    });
+  }
+  return map;
 }
 
-function UserPageContent({ data, isOwner, onChange }: ContentProps) {
-  const { profile, folders, items, projects } = data;
+function ProfileHero({ profile }: { profile: Profile }) {
+  return (
+    <header className="user-hero">
+      <div>
+        <p className="section-label">Portfolio</p>
+        <h1>{profile.display_name || profile.username}</h1>
+        <p className="user-hero__username">@{profile.username}</p>
+        {profile.bio ? <p>{profile.bio}</p> : null}
+        {profile.github_username ? (
+          <a href={`https://github.com/${profile.github_username}`} target="_blank" rel="noreferrer">
+            github.com/{profile.github_username}
+          </a>
+        ) : null}
+      </div>
+    </header>
+  );
+}
 
-  const projectByName = useMemo(() => {
-    const map = new Map<string, Project>();
-    for (const p of projects) map.set(p.name, p);
-    return map;
-  }, [projects]);
+function ReaderView({ data, buckets }: { data: LoadedData; buckets: Map<string, PlacedProject[]> }) {
+  const sortedFolders = data.folders.slice().sort((a, b) => a.position - b.position);
 
-  const itemsByFolder = useMemo(() => {
-    const map = new Map<string, PortfolioItem[]>();
-    map.set(UNFILED, []);
-    for (const f of folders) map.set(f.id, []);
-    for (const it of items) {
-      const key = it.folder_id ?? UNFILED;
-      if (!map.has(key)) map.set(key, []);
-      map.get(key)!.push(it);
-    }
-    return map;
-  }, [folders, items]);
+  const sections: { title: string; placed: PlacedProject[]; isFirst: boolean }[] = [];
+  sortedFolders.forEach((f, idx) => {
+    const list = buckets.get(f.id) ?? [];
+    if (list.length > 0) sections.push({ title: f.name, placed: list, isFirst: idx === 0 });
+  });
+  const unfiled = buckets.get(UNFILED) ?? [];
+  if (unfiled.length > 0) {
+    sections.push({ title: sections.length === 0 ? "Projects" : "Other projects", placed: unfiled, isFirst: sections.length === 0 });
+  }
 
-  const usedRepos = useMemo(() => new Set(items.map((i) => i.repo_full_name)), [items]);
-  const availableRepos = projects.filter((p) => !usedRepos.has(p.name));
+  return (
+    <main className="user-page">
+      <ProfileHero profile={data.profile} />
+
+      {sections.length === 0 ? (
+        <p className="user-folder__empty">No public projects yet.</p>
+      ) : (
+        sections.map((section) => (
+          <section className="projects" key={section.title}>
+            <div className="projects__header">
+              <div>
+                <p className="section-label">{section.isFirst ? "Selected Work" : "Projects"}</p>
+                <h2>{section.title}</h2>
+              </div>
+            </div>
+            {section.isFirst && section.placed.length > 0 ? (
+              <div className="featured-grid">
+                {section.placed.slice(0, 3).map((p, i) => (
+                  <ProjectCard key={p.project.id} project={p.project} featured={i === 0} />
+                ))}
+              </div>
+            ) : null}
+            <div className="project-grid">
+              {(section.isFirst ? section.placed.slice(3) : section.placed).map((p) => (
+                <ProjectCard key={p.project.id} project={p.project} />
+              ))}
+            </div>
+          </section>
+        ))
+      )}
+    </main>
+  );
+}
+
+function OwnerView({
+  data,
+  buckets,
+  onChange,
+}: {
+  data: LoadedData;
+  buckets: Map<string, PlacedProject[]>;
+  onChange: () => void;
+}) {
+  const { profile, folders } = data;
 
   async function handleAddFolder() {
     const name = window.prompt("Folder name?");
@@ -136,39 +214,50 @@ function UserPageContent({ data, isOwner, onChange }: ContentProps) {
   }
 
   async function handleDeleteFolder(folder: Folder) {
-    if (!window.confirm(`Delete folder "${folder.name}"? Projects inside will become unfiled.`)) return;
+    if (!window.confirm(`Delete folder "${folder.name}"? Projects inside become unfiled.`)) return;
     await deleteFolder(folder.id);
     onChange();
   }
 
-  async function handleAddItem(repoName: string, folderId: string | null) {
-    const siblings = items.filter((i) => (i.folder_id ?? null) === folderId);
-    await addItem(profile.id, repoName, folderId, siblings.length);
+  async function handleSetFolder(placed: PlacedProject, folderId: string | null) {
+    await upsertItem(profile.id, placed.project.name, {
+      folder_id: folderId,
+      hidden: false,
+      position: placed.item?.position ?? 0,
+    });
     onChange();
   }
 
-  async function handleRemoveItem(item: PortfolioItem) {
-    await removeItem(item.id);
+  async function handleToggleHidden(placed: PlacedProject) {
+    const nextHidden = !(placed.item?.hidden ?? false);
+    await upsertItem(profile.id, placed.project.name, {
+      hidden: nextHidden,
+      folder_id: placed.item?.folder_id ?? null,
+      position: placed.item?.position ?? 0,
+    });
     onChange();
   }
 
-  async function handleMoveItem(item: PortfolioItem, folderId: string | null) {
-    const siblings = items.filter((i) => (i.folder_id ?? null) === folderId && i.id !== item.id);
-    await moveItem(item.id, folderId, siblings.length);
-    onChange();
-  }
-
-  async function handleReorder(item: PortfolioItem, direction: -1 | 1) {
-    const siblings = items
-      .filter((i) => (i.folder_id ?? null) === (item.folder_id ?? null))
-      .sort((a, b) => a.position - b.position);
-    const idx = siblings.findIndex((s) => s.id === item.id);
+  async function handleReorder(placed: PlacedProject, direction: -1 | 1) {
+    const folderKey = placed.item?.hidden
+      ? HIDDEN
+      : placed.item?.folder_id ?? UNFILED;
+    const siblings = buckets.get(folderKey) ?? [];
+    const idx = siblings.findIndex((s) => s.project.name === placed.project.name);
     const swapIdx = idx + direction;
     if (swapIdx < 0 || swapIdx >= siblings.length) return;
     const other = siblings[swapIdx];
     await Promise.all([
-      moveItem(item.id, item.folder_id, other.position),
-      moveItem(other.id, other.folder_id, item.position),
+      upsertItem(profile.id, placed.project.name, {
+        folder_id: placed.item?.folder_id ?? null,
+        hidden: placed.item?.hidden ?? false,
+        position: swapIdx,
+      }),
+      upsertItem(profile.id, other.project.name, {
+        folder_id: other.item?.folder_id ?? null,
+        hidden: other.item?.hidden ?? false,
+        position: idx,
+      }),
     ]);
     onChange();
   }
@@ -180,80 +269,51 @@ function UserPageContent({ data, isOwner, onChange }: ContentProps) {
     onChange();
   }
 
-  function renderFolder(folderId: string | null, folderName: string, folder?: Folder) {
-    const key = folderId ?? UNFILED;
-    const folderItems = (itemsByFolder.get(key) ?? []).slice().sort((a, b) => a.position - b.position);
-
+  function renderBucket(key: string, title: string, folder?: Folder, isHidden = false) {
+    const placed = buckets.get(key) ?? [];
     return (
-      <section className="user-folder" key={key}>
+      <section className={`user-folder${isHidden ? " user-folder--hidden" : ""}`} key={key}>
         <header className="user-folder__header">
-          <h2>{folderName}</h2>
-          {isOwner && folder ? (
+          <h2>{title}</h2>
+          {folder ? (
             <div className="user-folder__actions">
               <button type="button" onClick={() => handleRenameFolder(folder)}>Rename</button>
               <button type="button" onClick={() => handleDeleteFolder(folder)}>Delete</button>
             </div>
           ) : null}
         </header>
-
-        {folderItems.length === 0 ? (
-          <p className="user-folder__empty">{isOwner ? "No projects yet." : "Empty."}</p>
+        {placed.length === 0 ? (
+          <p className="user-folder__empty">Empty.</p>
         ) : (
           <ul className="user-item-list">
-            {folderItems.map((item) => {
-              const project = projectByName.get(item.repo_full_name);
-              return (
-                <li key={item.id} className="user-item">
-                  <div className="user-item__main">
-                    <h3>{project?.title ?? item.repo_full_name}</h3>
-                    <p>{project?.description ?? ""}</p>
-                    {project ? (
-                      <a href={project.htmlUrl} target="_blank" rel="noreferrer">View on GitHub</a>
-                    ) : null}
-                  </div>
-                  {isOwner ? (
-                    <div className="user-item__actions">
-                      <button type="button" onClick={() => handleReorder(item, -1)}>↑</button>
-                      <button type="button" onClick={() => handleReorder(item, 1)}>↓</button>
-                      <select
-                        value={item.folder_id ?? ""}
-                        onChange={(e) => handleMoveItem(item, e.target.value || null)}
-                      >
-                        <option value="">Unfiled</option>
-                        {folders.map((f) => (
-                          <option key={f.id} value={f.id}>{f.name}</option>
-                        ))}
-                      </select>
-                      <button type="button" onClick={() => handleRemoveItem(item)}>Remove</button>
-                    </div>
-                  ) : null}
-                </li>
-              );
-            })}
+            {placed.map((p) => (
+              <li key={p.project.id} className="user-item">
+                <div className="user-item__main">
+                  <h3>{p.project.title}</h3>
+                  <p>{p.project.description}</p>
+                  <a href={p.project.htmlUrl} target="_blank" rel="noreferrer">View on GitHub</a>
+                </div>
+                <div className="user-item__actions">
+                  <button type="button" onClick={() => handleReorder(p, -1)}>↑</button>
+                  <button type="button" onClick={() => handleReorder(p, 1)}>↓</button>
+                  <select
+                    value={p.item?.folder_id ?? ""}
+                    onChange={(e) => handleSetFolder(p, e.target.value || null)}
+                    disabled={p.item?.hidden}
+                  >
+                    <option value="">Unfiled</option>
+                    {folders.map((f) => (
+                      <option key={f.id} value={f.id}>{f.name}</option>
+                    ))}
+                  </select>
+                  <button type="button" onClick={() => handleToggleHidden(p)}>
+                    {p.item?.hidden ? "Show" : "Hide"}
+                  </button>
+                </div>
+              </li>
+            ))}
           </ul>
         )}
-
-        {isOwner && availableRepos.length > 0 ? (
-          <div className="user-folder__add">
-            <label>
-              Add project:
-              <select
-                defaultValue=""
-                onChange={(e) => {
-                  if (e.target.value) {
-                    handleAddItem(e.target.value, folderId);
-                    e.target.value = "";
-                  }
-                }}
-              >
-                <option value="" disabled>Choose a repo...</option>
-                {availableRepos.map((p) => (
-                  <option key={p.id} value={p.name}>{p.title}</option>
-                ))}
-              </select>
-            </label>
-          </div>
-        ) : null}
       </section>
     );
   }
@@ -264,7 +324,7 @@ function UserPageContent({ data, isOwner, onChange }: ContentProps) {
     <main className="user-page">
       <header className="user-hero">
         <div>
-          <p className="section-label">Portfolio</p>
+          <p className="section-label">Portfolio (editing)</p>
           <h1>{profile.display_name || profile.username}</h1>
           <p className="user-hero__username">@{profile.username}</p>
           {profile.bio ? <p>{profile.bio}</p> : null}
@@ -274,16 +334,20 @@ function UserPageContent({ data, isOwner, onChange }: ContentProps) {
             </a>
           ) : null}
         </div>
-        {isOwner ? (
-          <div className="user-hero__actions">
-            <button type="button" onClick={handleEditBio}>Edit bio</button>
-            <button type="button" onClick={handleAddFolder}>+ New folder</button>
-          </div>
-        ) : null}
+        <div className="user-hero__actions">
+          <button type="button" onClick={handleEditBio}>Edit bio</button>
+          <button type="button" onClick={handleAddFolder}>+ New folder</button>
+          <a href={`#u/${profile.username}?preview=1`} onClick={(e) => {
+            e.preventDefault();
+            window.location.hash = `#u/${profile.username}`;
+            window.location.reload();
+          }}>Preview as visitor</a>
+        </div>
       </header>
 
-      {sortedFolders.map((f) => renderFolder(f.id, f.name, f))}
-      {renderFolder(null, "Unfiled")}
+      {sortedFolders.map((f) => renderBucket(f.id, f.name, f))}
+      {renderBucket(UNFILED, "Unfiled")}
+      {renderBucket(HIDDEN, "Hidden (only visible to you)", undefined, true)}
     </main>
   );
 }

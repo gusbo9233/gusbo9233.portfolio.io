@@ -1,19 +1,12 @@
-import { startTransition, useDeferredValue, useEffect, useState } from "react";
-import type { ChangeEvent } from "react";
-import {
-  fetchGitHubData,
-  formatCompactNumber,
-  formatDate,
-} from "./lib/github";
-import type { GitHubProfile, Project } from "./lib/github";
+import { useEffect, useState } from "react";
 import { signInWithGitHub, signOut, supabase } from "./lib/supabase";
 import type { Session } from "@supabase/supabase-js";
 import UserPage from "./UserPage";
+import HomePage from "./HomePage";
 import { fetchMyProfile } from "./lib/portfolio";
 import type { Profile } from "./lib/portfolio";
 
-const githubUsername = import.meta.env.VITE_GITHUB_USERNAME || "gusbo9233";
-const emailAddress = "gusbo923@gmail.com";
+const defaultUsername = import.meta.env.VITE_GITHUB_USERNAME || "gusbo9233";
 
 type Page =
   | { kind: "home" }
@@ -146,22 +139,10 @@ const cvEducation = [
 ];
 
 const cvContactLinks = [
-  {
-    label: "+46 76 166 14 28",
-    href: "tel:+46761661428",
-  },
-  {
-    label: "github.com/gusbo9233",
-    href: "https://github.com/gusbo9233",
-  },
-  {
-    label: "linkedin.com/in/gustav-boberg",
-    href: "https://linkedin.com/in/gustav-boberg",
-  },
-  {
-    label: "gusbo923@gmail.com",
-    href: "mailto:gusbo923@gmail.com",
-  },
+  { label: "+46 76 166 14 28", href: "tel:+46761661428" },
+  { label: "github.com/gusbo9233", href: "https://github.com/gusbo9233" },
+  { label: "linkedin.com/in/gustav-boberg", href: "https://linkedin.com/in/gustav-boberg" },
+  { label: "gusbo923@gmail.com", href: "mailto:gusbo923@gmail.com" },
 ];
 
 interface CvRole {
@@ -185,56 +166,6 @@ function getPageFromHash(): Page {
   const userMatch = hash.match(/^#u\/([^/?#]+)/);
   if (userMatch) return { kind: "user", username: decodeURIComponent(userMatch[1]) };
   return { kind: "home" };
-}
-
-interface AppState {
-  status: "loading" | "ready" | "error";
-  projects: Project[];
-  profile: GitHubProfile | null;
-  error: string;
-}
-
-interface ProjectCardProps {
-  project: Project;
-  featured?: boolean;
-}
-
-function ProjectCard({ project, featured = false }: ProjectCardProps) {
-  return (
-    <article className={`project-card${featured ? " featured" : ""}`}>
-      <div className="project-card__top">
-        <div>
-          <p className="project-card__eyebrow">
-            {project.language || "Multi-stack"}
-          </p>
-          <h3>{project.title}</h3>
-        </div>
-        <a href={project.htmlUrl} target="_blank" rel="noreferrer">
-          Source
-        </a>
-      </div>
-      <p className="project-card__description">{project.description}</p>
-      <div className="tag-list">
-        {project.tags.slice(0, 4).map((tag) => (
-          <span key={`${project.id}-${tag}`}>{tag}</span>
-        ))}
-      </div>
-      <div className="project-card__meta">
-        <span>{project.language || "No primary language"}</span>
-        <span>{formatCompactNumber(project.stars)} stars</span>
-        <span>Updated {formatDate(project.updatedAt)}</span>
-      </div>
-      <div className="project-card__actions">
-        {project.homepage ? (
-          <a href={project.homepage} target="_blank" rel="noreferrer">
-            Live preview
-          </a>
-        ) : (
-          <span className="project-card__muted">No live demo linked</span>
-        )}
-      </div>
-    </article>
-  );
 }
 
 function CvPage() {
@@ -342,15 +273,6 @@ export default function App() {
   const [page, setPage] = useState<Page>(() => getPageFromHash());
   const [session, setSession] = useState<Session | null>(null);
   const [myProfile, setMyProfile] = useState<Profile | null>(null);
-  const [query, setQuery] = useState("");
-  const [language, setLanguage] = useState("All");
-  const [state, setState] = useState<AppState>({
-    status: "loading",
-    projects: [],
-    profile: null,
-    error: "",
-  });
-  const deferredQuery = useDeferredValue(query);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -374,7 +296,6 @@ export default function App() {
       return;
     }
     let active = true;
-    // Profile trigger inserts asynchronously; retry a couple times if missing.
     async function load(attempt = 0): Promise<void> {
       const profile = await fetchMyProfile(session!.user.id).catch(() => null);
       if (!active) return;
@@ -396,101 +317,24 @@ export default function App() {
     function handleHashChange() {
       setPage(getPageFromHash());
     }
-
     window.addEventListener("hashchange", handleHashChange);
-
     return () => {
       window.removeEventListener("hashchange", handleHashChange);
     };
   }, []);
 
-  useEffect(() => {
-    let isActive = true;
-
-    startTransition(() => {
-      setState((current) => ({ ...current, status: "loading", error: "" }));
-    });
-
-    fetchGitHubData(githubUsername)
-      .then((result) => {
-        if (!isActive) {
-          return;
-        }
-
-        setState({
-          status: "ready",
-          projects: result.projects,
-          profile: result.profile,
-          error: "",
-        });
-      })
-      .catch((error: Error) => {
-        if (!isActive) {
-          return;
-        }
-
-        setState({
-          status: "error",
-          projects: [],
-          profile: null,
-          error: error.message,
-        });
-      });
-
-    return () => {
-      isActive = false;
-    };
-  }, []);
-
-  const languages = ["All"];
-  state.projects.forEach((project) => {
-    if (project.language && !languages.includes(project.language)) {
-      languages.push(project.language);
-    }
-  });
-
-  const filteredProjects = state.projects.filter((project) => {
-    const matchesQuery =
-      !deferredQuery ||
-      `${project.title} ${project.description} ${project.tags.join(" ")}`
-        .toLowerCase()
-        .includes(deferredQuery.toLowerCase());
-
-    const matchesLanguage = language === "All" || project.language === language;
-
-    return matchesQuery && matchesLanguage;
-  });
-
-  const featuredProjects = filteredProjects.slice(0, 3);
-  const projectCount = filteredProjects.length;
-  const totalStars = state.projects.reduce(
-    (sum, project) => sum + project.stars,
-    0,
-  );
-
-  function handleQueryChange(event: ChangeEvent<HTMLInputElement>) {
-    setQuery(event.target.value);
-  }
-
-  function handleLanguageChange(event: ChangeEvent<HTMLSelectElement>) {
-    setLanguage(event.target.value);
-  }
+  const viewerId = session?.user.id ?? null;
 
   return (
     <div className="page-shell">
       <header className="topbar">
         <a className="brand" href="#home">
           <span className="brand__mark" />
-          <span>{githubUsername}</span>
+          <span>{defaultUsername}</span>
         </a>
         <nav>
           <a href="#home">Home</a>
-          <a href="#projects">Projects</a>
           <a href="#cv">CV</a>
-          <a href="#contact">Contact</a>
-          <a href={`https://github.com/${githubUsername}`} target="_blank" rel="noreferrer">
-            GitHub
-          </a>
           {myProfile ? (
             <a href={`#u/${myProfile.username}`}>My page</a>
           ) : null}
@@ -506,128 +350,12 @@ export default function App() {
         </nav>
       </header>
 
-      {page.kind === "user" ? (
-        <UserPage username={page.username} viewerId={session?.user.id ?? null} />
-      ) : page.kind === "cv" ? <CvPage /> : (
-      <main id="home">
-        <section className="contact-panel" id="contact">
-          <div>
-            <p className="section-label">Contact</p>
-            <h2>Gustav Boberg</h2>
-            <p>
-              Software developer in Lund with experience across web, automation,
-              ERP systems, machine vision, support, and deployment workflows.
-            </p>
-          </div>
-          <div className="contact-panel__actions">
-            <a href={`mailto:${emailAddress}`}>Email me</a>
-            <a
-              className="contact-panel__secondary"
-              href="#cv"
-            >
-              View CV
-            </a>
-          </div>
-        </section>
-
-        <section className="github-note">
-          <div>
-            <p className="section-label">Live Projects</p>
-            <h2>My project list updates from GitHub.</h2>
-            <p>
-              Public repositories are fetched from the GitHub API. If a repo has
-              a <code>portfolio.yaml</code>, the site can use it for a more
-              polished title, description, and custom tags.
-            </p>
-          </div>
-          <div className="github-note__steps">
-            <div>
-              <span>01</span>
-              <p>Fetch profile and repositories.</p>
-            </div>
-            <div>
-              <span>02</span>
-              <p>Enrich selected work with custom metadata.</p>
-            </div>
-            <div>
-              <span>03</span>
-              <p>Render searchable, live project cards.</p>
-            </div>
-          </div>
-        </section>
-
-        <section className="projects" id="projects">
-          <div className="projects__header">
-            <div>
-              <p className="section-label">Selected Work</p>
-              <h2>Projects from my GitHub</h2>
-            </div>
-            <div className="projects__controls">
-              <input
-                aria-label="Search projects"
-                type="search"
-                value={query}
-                onChange={handleQueryChange}
-                placeholder="Search by title, tag, or description"
-              />
-              <select
-                aria-label="Filter by language"
-                value={language}
-                onChange={handleLanguageChange}
-              >
-                {languages.map((option) => (
-                  <option key={option} value={option}>
-                    {option}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {state.status === "loading" ? (
-            <div className="status-panel">
-              <p>Loading repositories from GitHub...</p>
-            </div>
-          ) : null}
-
-          {state.status === "error" ? (
-            <div className="status-panel status-panel--error">
-              <p>{state.error}</p>
-              <p>
-                If you hit GitHub rate limits, add a proxy or authenticated
-                token-backed endpoint later.
-              </p>
-            </div>
-          ) : null}
-
-          {state.status === "ready" ? (
-            <>
-              <div className="projects__summary">
-                <p>
-                  Showing <strong>{projectCount}</strong> projects for{" "}
-                  <strong>{githubUsername}</strong>.
-                </p>
-              </div>
-
-              <div className="featured-grid">
-                {featuredProjects.map((project, index) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    featured={index === 0}
-                  />
-                ))}
-              </div>
-
-              <div className="project-grid">
-                {filteredProjects.slice(3).map((project) => (
-                  <ProjectCard key={project.id} project={project} />
-                ))}
-              </div>
-            </>
-          ) : null}
-        </section>
-      </main>
+      {page.kind === "cv" ? (
+        <CvPage />
+      ) : page.kind === "user" ? (
+        <UserPage username={page.username} viewerId={viewerId} />
+      ) : (
+        <HomePage />
       )}
     </div>
   );

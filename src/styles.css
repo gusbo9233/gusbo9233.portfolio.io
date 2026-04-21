@@ -840,3 +840,38 @@ code {
   padding: 0.35rem 0.6rem;
   cursor: pointer;
 }
+
+.profile-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+}
+.profile-card {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  text-decoration: none;
+  color: inherit;
+  align-items: center;
+  transition: transform 120ms ease, border-color 120ms ease;
+}
+.profile-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+.profile-card__avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+.profile-card__avatar--placeholder {
+  background: var(--accent-soft);
+}
+.profile-card__body h3 { margin: 0 0 0.15rem; }
+.profile-card__handle { margin: 0; color: var(--muted); font-size: 0.85rem; }
+.profile-card__bio { margin: 0.4rem 0 0; color: var(--muted); font-size: 0.9rem; }

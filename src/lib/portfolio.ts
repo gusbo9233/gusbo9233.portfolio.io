@@ -22,6 +22,16 @@ export interface PortfolioItem {
   folder_id: string | null;
   repo_full_name: string;
   position: number;
+  hidden: boolean;
+}
+
+export async function fetchAllProfiles(): Promise<Profile[]> {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, username, display_name, bio, avatar_url, github_username")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
 }
 
 export async function fetchProfileByUsername(
@@ -59,11 +69,28 @@ export async function fetchFolders(userId: string): Promise<Folder[]> {
 export async function fetchItems(userId: string): Promise<PortfolioItem[]> {
   const { data, error } = await supabase
     .from("portfolio_items")
-    .select("id, user_id, folder_id, repo_full_name, position")
+    .select("id, user_id, folder_id, repo_full_name, position, hidden")
     .eq("user_id", userId)
     .order("position", { ascending: true });
   if (error) throw error;
   return data ?? [];
+}
+
+export async function upsertItem(
+  userId: string,
+  repoFullName: string,
+  patch: { folder_id?: string | null; hidden?: boolean; position?: number },
+): Promise<PortfolioItem> {
+  const { data, error } = await supabase
+    .from("portfolio_items")
+    .upsert(
+      { user_id: userId, repo_full_name: repoFullName, ...patch },
+      { onConflict: "user_id,repo_full_name" },
+    )
+    .select()
+    .single();
+  if (error) throw error;
+  return data;
 }
 
 export async function createFolder(
