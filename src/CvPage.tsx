@@ -66,9 +66,9 @@ export default function CvPage({ username, viewerId, mode = "reader" }: CvPagePr
     setVersion((v) => v + 1);
   };
 
-  if (state.kind === "loading") return <main className="cv-page"><p>Loading...</p></main>;
-  if (state.kind === "not_found") return <main className="cv-page"><p>No user "{username}" found.</p></main>;
-  if (state.kind === "error") return <main className="cv-page"><p>Error: {state.message}</p></main>;
+  if (state.kind === "loading") return <main className="cv-page" style={{ padding: "3rem" }}><p>Loading…</p></main>;
+  if (state.kind === "not_found") return <main className="cv-page" style={{ padding: "3rem" }}><p>No user "{username}" found.</p></main>;
+  if (state.kind === "error") return <main className="cv-page" style={{ padding: "3rem" }}><p>Error: {state.message}</p></main>;
 
   const { profile, cv } = state.data;
   const isOwner = viewerId === profile.id;
@@ -83,95 +83,113 @@ function CvReader({ profile, cv, isOwner }: { profile: Profile; cv: Cv | null; i
   const hasContact = Boolean(cv && (cv.contact_links.length > 0 || cv.location));
 
   return (
-    <main className="user-page cv-page cv-page--reader tabbed-page">
+    <main className="cv-page cv-page--reader tabbed-page">
       <UserTabs username={profile.username} active="cv" />
+
+      {/* CV Hero */}
+      <div className="cv-hero">
+        <div>
+          <p className="blueprint blueprint--warm" style={{ marginBottom: 8 }}>Curriculum Vitae</p>
+          <h1>
+            {profile.display_name || profile.username}
+            {cv?.title ? (
+              <><br /><em style={{ color: "var(--primary)", fontStyle: "italic", fontSize: "0.7em" }}>{cv.title}</em></>
+            ) : null}
+          </h1>
+          {cv?.location && (
+            <p className="lede" style={{ marginBottom: 28 }}>{cv.location}</p>
+          )}
+          {isOwner && (
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
+              <a href={`#u/${profile.username}/cv/edit`} className="btn btn--primary">
+                <span className="ms" style={{ fontSize: 18 }}>edit</span>
+                Edit CV
+              </a>
+            </div>
+          )}
+        </div>
+
+        {hasContact && cv ? (
+          <div className="cv-contact">
+            <p className="blueprint blueprint--muted">Direct Line</p>
+            {cv.contact_links.map((link) => (
+              <a
+                key={link.href + link.label}
+                href={link.href}
+                target={link.href.startsWith("http") ? "_blank" : undefined}
+                rel={link.href.startsWith("http") ? "noreferrer" : undefined}
+              >
+                {link.label}
+              </a>
+            ))}
+            {cv.location ? <span>{cv.location}</span> : null}
+          </div>
+        ) : null}
+      </div>
 
       {!cv ? (
         <p className="user-folder__empty">{profile.display_name || profile.username} hasn't published a CV yet.</p>
       ) : (
-        <CvBody cv={cv} showContact={hasContact} />
+        <CvBody cv={cv} />
       )}
     </main>
   );
 }
 
-function CvBody({ cv, showContact }: { cv: Cv; showContact: boolean }) {
+function CvBody({ cv }: { cv: Cv }) {
   return (
-    <section className="cv-layout">
+    <div className="cv-layout">
       <aside className="cv-sidebar">
-        {showContact ? (
+        {cv.technical_skills.length > 0 && (
           <section className="cv-section cv-sidebar__section">
-            <p className="section-label">Contact</p>
-            <h2>Reach out</h2>
-            <div className="cv-contact cv-contact--sidebar">
-              {cv.contact_links.map((link) => (
-                <a
-                  key={link.href + link.label}
-                  href={link.href}
-                  target={link.href.startsWith("http") ? "_blank" : undefined}
-                  rel={link.href.startsWith("http") ? "noreferrer" : undefined}
-                >
-                  {link.label}
-                </a>
+            <p className="blueprint">Core Stack</p>
+            <h2>Technical skills</h2>
+            <div className="skill-cloud">
+              {cv.technical_skills.map((skill) => (
+                <span key={skill}>{skill}</span>
               ))}
-              {cv.location ? <span>{cv.location}</span> : null}
             </div>
           </section>
-        ) : null}
+        )}
 
-        {cv.technical_skills.length > 0 || cv.languages.length > 0 ? (
+        {cv.languages.length > 0 && (
           <section className="cv-section cv-sidebar__section">
-            <p className="section-label">Programming & Languages</p>
-            {cv.technical_skills.length > 0 ? (
-              <>
-                <h2>Technical</h2>
-                <div className="skill-cloud cv-skill-cloud" aria-label="Technical skills">
-                  {cv.technical_skills.map((skill) => (
-                    <span key={skill}>{skill}</span>
-                  ))}
-                </div>
-              </>
-            ) : null}
-            {cv.languages.length > 0 ? (
-              <>
-                <h2 className="cv-subheading">Languages</h2>
-                <div className="language-list">
-                  {cv.languages.map((language) => (
-                    <span key={language}>{language}</span>
-                  ))}
-                </div>
-              </>
-            ) : null}
+            <p className="blueprint blueprint--warm">Languages</p>
+            <h2>Spoken</h2>
+            <div className="skill-cloud lang-cloud">
+              {cv.languages.map((language) => (
+                <span key={language}>{language}</span>
+              ))}
+            </div>
           </section>
-        ) : null}
+        )}
 
-        {cv.education.length > 0 ? (
+        {cv.education.length > 0 && (
           <section className="cv-section cv-sidebar__section">
-            <p className="section-label">Education</p>
-            <h2>Studies</h2>
-            <div className="education-list">
+            <p className="blueprint">Education</p>
+            <h2>Formal</h2>
+            <div className="timeline">
               {cv.education.map((item, i) => (
-                <article key={`${item.degree}-${i}`}>
-                  <h3>{item.degree}</h3>
-                  <p>{item.school}, {item.period}</p>
-                  {item.detail ? <p>{item.detail}</p> : null}
+                <article key={`${item.degree}-${i}`} className="timeline-item" style={{ gridTemplateColumns: "1fr" }}>
+                  <div>
+                    <h3>{item.degree}</h3>
+                    <p className="timeline-item__role">{item.school}</p>
+                    {item.period ? <p style={{ color: "var(--warm)", fontFamily: "var(--font-headline)", fontWeight: 900, fontSize: 14 }}>{item.period}</p> : null}
+                    {item.detail ? <p>{item.detail}</p> : null}
+                  </div>
                 </article>
               ))}
             </div>
           </section>
-        ) : null}
+        )}
       </aside>
 
       <div className="cv-main">
-        {cv.title ? (
-          <p className="section-label" style={{ marginTop: "0.5rem" }}>{cv.title}</p>
-        ) : null}
-
-        {cv.highlights.length > 0 ? (
+        {cv.highlights.length > 0 && (
           <section className="cv-section cv-summary">
             <div>
-              <p className="section-label">Snapshot</p>
-              <h2>{cv.title || "Summary"}</h2>
+              <p className="blueprint">Summary</p>
+              <h2>{cv.title || "Overview"}</h2>
             </div>
             <div className="cv-highlight-list">
               {cv.highlights.map((h, i) => (
@@ -179,24 +197,24 @@ function CvBody({ cv, showContact }: { cv: Cv; showContact: boolean }) {
               ))}
             </div>
           </section>
-        ) : null}
+        )}
 
-        {cv.experience.length > 0 ? (
+        {cv.experience.length > 0 && (
           <section className="cv-section">
             <div className="cv-section__header">
-              <p className="section-label">Experience</p>
-              <h2>AI/IT Projects</h2>
+              <p className="blueprint blueprint--warm">Experience</p>
+              <h2>Selected engagements</h2>
             </div>
             <div className="timeline">
               {cv.experience.map((job, i) => (
                 <article className="timeline-item" key={`${job.company}-${job.period}-${i}`}>
                   <div className="timeline-item__meta">
                     <span>{job.period}</span>
-                    <strong>{job.location}</strong>
+                    <div>{job.location}</div>
                   </div>
-                  <div className="timeline-item__body">
+                  <div>
                     <h3>{job.company}</h3>
-                    <p>{job.context}</p>
+                    {job.context ? <p style={{ marginBottom: 8 }}>{job.context}</p> : null}
                     {job.note ? <p>{job.note}</p> : null}
                     {job.roles.map((role, j) => (
                       <div className="timeline-role" key={`${role.title}-${j}`}>
@@ -216,8 +234,8 @@ function CvBody({ cv, showContact }: { cv: Cv; showContact: boolean }) {
               ))}
             </div>
           </section>
-        ) : null}
+        )}
       </div>
-    </section>
+    </div>
   );
 }

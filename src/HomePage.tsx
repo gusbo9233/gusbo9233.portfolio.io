@@ -9,31 +9,31 @@ export default function HomePage() {
   useEffect(() => {
     let active = true;
     fetchAllProfiles()
-      .then((list) => {
-        if (active) setProfiles(list);
-      })
-      .catch((err: Error) => {
-        if (active) setError(err.message);
-      });
-    return () => {
-      active = false;
-    };
+      .then((list) => { if (active) setProfiles(list); })
+      .catch((err: Error) => { if (active) setError(err.message); });
+    return () => { active = false; };
   }, []);
 
   return (
-    <main className="user-page">
-      <header className="user-hero">
-        <div>
-          <p className="section-label">Portfolios</p>
-          <h1>Choose a profile</h1>
-          <p>Pick someone to view their portfolio. Sign in with GitHub to get your own.</p>
-        </div>
+    <section className="shell shell--wide" style={{ paddingTop: "3.5rem", paddingBottom: "4rem" }}>
+      <header style={{ maxWidth: 780, marginBottom: "3rem" }}>
+        <p className="blueprint blueprint--warm" style={{ marginBottom: 12 }}>Portfolios</p>
+        <h1 className="display" style={{ marginBottom: 20 }}>
+          Choose a <em>profile</em>.
+        </h1>
+        <p className="lede">
+          Pick someone to view their portfolio. Sign in with GitHub to get your own.
+        </p>
       </header>
 
-      {error ? <p className="user-folder__empty">Error: {error}</p> : null}
+      {error ? (
+        <div className="status-panel status-panel--error" style={{ marginBottom: "1.5rem" }}>
+          Error: {error}
+        </div>
+      ) : null}
 
       {profiles === null ? (
-        <p>Loading...</p>
+        <p className="user-folder__empty">Loading…</p>
       ) : profiles.length === 0 ? (
         <p className="user-folder__empty">No profiles yet.</p>
       ) : (
@@ -54,6 +54,6 @@ export default function HomePage() {
           ))}
         </div>
       )}
-    </main>
+    </section>
   );
 }

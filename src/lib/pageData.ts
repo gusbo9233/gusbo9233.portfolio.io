@@ -1,6 +1,6 @@
 import { fetchCvByUserId } from "./cv";
 import type { Cv } from "./cv";
-import { fetchGitHubData } from "./github";
+import { fetchExternalRepo, fetchGitHubData } from "./github";
 import type { Project } from "./github";
 import {
   fetchFolders,
@@ -77,17 +77,40 @@ async function loadUserPage(username: string): Promise<UserPageData | null> {
     fetchItems(profile.id),
   ]);
 
-  let projects: Project[] = [];
+  let ownedProjects: Project[] = [];
   let githubError: string | null = null;
 
   if (profile.github_username) {
     try {
       const githubData = await fetchGitHubData(profile.github_username);
-      projects = githubData.projects;
+      ownedProjects = githubData.projects;
     } catch (error) {
       githubError = (error as Error).message || "Unable to load GitHub profile data right now.";
     }
   }
+
+  const ownedNames = new Set(ownedProjects.map((p) => p.name));
+  const externalNames = Array.from(
+    new Set(
+      items
+        .map((it) => it.repo_full_name)
+        .filter((n) => n.includes("/") && !ownedNames.has(n)),
+    ),
+  );
+
+  const externalResults = await Promise.all(
+    externalNames.map(async (full) => {
+      const [owner, name] = full.split("/", 2);
+      try {
+        return await fetchExternalRepo(owner, name);
+      } catch {
+        return null;
+      }
+    }),
+  );
+  const externalProjects = externalResults.filter((p): p is Project => p !== null);
+
+  const projects = [...ownedProjects, ...externalProjects];
 
   return { profile, folders, items, projects, githubError };
 }

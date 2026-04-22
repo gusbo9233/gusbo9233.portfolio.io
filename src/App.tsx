@@ -89,45 +89,85 @@ export default function App() {
   }, [session]);
 
   const viewerId = session?.user.id ?? null;
-
   const isWidePage = page.kind === "cv" || page.kind === "user";
 
+  const navLinks = [
+    { href: "#home", label: "Home", active: page.kind === "home" },
+    { href: `#u/${defaultUsername}/cv`, label: "CV", active: page.kind === "cv" },
+    ...(myProfile ? [{ href: "#me", label: "My Pages", active: page.kind === "me" }] : []),
+  ];
+
   return (
-    <div className={`page-shell${isWidePage ? " page-shell--wide" : ""}`}>
-      <header className="topbar">
-        <a className="brand" href="#home">
-          <span className="brand__mark" />
-          <span>{defaultUsername}</span>
-        </a>
-        <nav>
-          <a href="#home">Home</a>
-          <a href={`#u/${defaultUsername}/cv`}>CV</a>
-          {myProfile ? (
-            <a href="#me">My Pages</a>
-          ) : null}
-          {session ? (
-            <button type="button" className="auth-button" onClick={() => signOut()}>
-              Sign out{session.user.user_metadata?.user_name ? ` (${session.user.user_metadata.user_name})` : ""}
-            </button>
-          ) : (
-            <button type="button" className="auth-button" onClick={() => signInWithGitHub()}>
-              Sign in with GitHub
-            </button>
-          )}
-        </nav>
-      </header>
+    <>
+      <nav className="nav">
+        <div className="shell shell--wide nav__inner">
+          <a className="brand" href="#home">
+            <span className="brand__mark" />
+            <span>{defaultUsername}</span>
+          </a>
+          <div className="nav__links">
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className={`nav__link${link.active ? " nav__link--active" : ""}`}
+              >
+                {link.label}
+              </a>
+            ))}
+            {session ? (
+              <button
+                type="button"
+                className="btn btn--ghost"
+                style={{ fontSize: 13, padding: "10px 18px" }}
+                onClick={() => signOut()}
+              >
+                Sign out{session.user.user_metadata?.user_name ? ` · ${session.user.user_metadata.user_name}` : ""}
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="btn btn--primary btn--hire"
+                onClick={() => signInWithGitHub()}
+              >
+                Sign in
+              </button>
+            )}
+          </div>
+        </div>
+      </nav>
 
       <div className="page-content" data-page-kind={page.kind}>
         {page.kind === "cv" ? (
-          <CvPage username={page.username} viewerId={viewerId} mode={page.edit ? "edit" : "reader"} />
+          <div className={`page-shell${isWidePage ? " page-shell--wide" : ""}`}>
+            <CvPage username={page.username} viewerId={viewerId} mode={page.edit ? "edit" : "reader"} />
+          </div>
         ) : page.kind === "me" ? (
-          <MyPagesPage profile={myProfile} signedIn={Boolean(session)} />
+          <div className="page-shell">
+            <MyPagesPage profile={myProfile} signedIn={Boolean(session)} />
+          </div>
         ) : page.kind === "user" ? (
-          <UserPage username={page.username} viewerId={viewerId} mode={page.edit ? "edit" : "reader"} />
+          <div className={`page-shell${isWidePage ? " page-shell--wide" : ""}`}>
+            <UserPage username={page.username} viewerId={viewerId} mode={page.edit ? "edit" : "reader"} />
+          </div>
         ) : (
           <HomePage />
         )}
       </div>
-    </div>
+
+      <footer className="foot">
+        <div className="shell shell--wide foot__inner">
+          <a className="brand" href="#home">
+            <span className="brand__mark" />
+            <span>{defaultUsername}</span>
+          </a>
+          <div className="foot__links">
+            <a href="#home">Home</a>
+            <a href={`#u/${defaultUsername}/cv`}>CV</a>
+          </div>
+          <p className="foot__meta">Portfolio · {new Date().getFullYear()}</p>
+        </div>
+      </footer>
+    </>
   );
 }

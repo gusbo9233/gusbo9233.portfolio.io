@@ -120,6 +120,26 @@ function normalizeProject(repo: GitHubRepo, manifest: PortfolioManifest | null):
   };
 }
 
+export function parseRepoInput(input: string): { owner: string; name: string } | null {
+  const trimmed = input.trim().replace(/\.git$/, "").replace(/\/$/, "");
+  if (!trimmed) return null;
+  const urlMatch = trimmed.match(/github\.com\/([^/\s]+)\/([^/\s?#]+)/i);
+  if (urlMatch) return { owner: urlMatch[1], name: urlMatch[2] };
+  const plainMatch = trimmed.match(/^([^/\s]+)\/([^/\s]+)$/);
+  if (plainMatch) return { owner: plainMatch[1], name: plainMatch[2] };
+  return null;
+}
+
+export async function fetchExternalRepo(owner: string, name: string): Promise<Project | null> {
+  const headers = { Accept: "application/vnd.github+json" };
+  const response = await fetch(`https://api.github.com/repos/${owner}/${name}`, { headers });
+  if (!response.ok) return null;
+  const repo = (await response.json()) as GitHubRepo;
+  const manifest = await fetchPortfolioManifest(repo);
+  const project = normalizeProject(repo, manifest);
+  return { ...project, name: `${repo.owner.login}/${repo.name}` };
+}
+
 export async function fetchGitHubData(username: string): Promise<GitHubData> {
   const headers = {
     Accept: "application/vnd.github+json",
