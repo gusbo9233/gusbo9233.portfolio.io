@@ -4,14 +4,16 @@ import { formatCompactNumber, formatDate } from "./lib/github";
 interface ProjectCardProps {
   project: Project;
   featured?: boolean;
+  compact?: boolean;
 }
 
-export function ProjectCard({ project, featured = false }: ProjectCardProps) {
+export function ProjectCard({ project, featured = false, compact = false }: ProjectCardProps) {
   const eyebrow = project.language || (project.tags[0] ?? "Repository");
+  const visibleTags = compact ? project.tags.slice(0, 2) : project.tags.slice(0, 3);
 
   return (
     <a
-      className={`proj${featured ? " proj--featured" : ""}`}
+      className={`proj${featured ? " proj--featured" : ""}${compact ? " proj--compact" : ""}`}
       href={project.htmlUrl}
       target="_blank"
       rel="noreferrer"
@@ -19,7 +21,7 @@ export function ProjectCard({ project, featured = false }: ProjectCardProps) {
       <p className="proj__eyebrow">{eyebrow}</p>
       <h3
         className="proj__title"
-        style={{ fontSize: featured ? "2rem" : "1.4rem" }}
+        style={{ fontSize: featured ? "2rem" : compact ? "1.1rem" : "1.4rem" }}
       >
         {project.title}
       </h3>
@@ -27,9 +29,9 @@ export function ProjectCard({ project, featured = false }: ProjectCardProps) {
         <p className="proj__desc">{project.description}</p>
       ) : null}
 
-      {project.tags.length > 0 ? (
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 16 }}>
-          {project.tags.slice(0, 3).map((tag) => (
+      {visibleTags.length > 0 ? (
+        <div className="proj__tags">
+          {visibleTags.map((tag) => (
             <span className="chip" key={`${project.id}-${tag}`}>{tag}</span>
           ))}
         </div>

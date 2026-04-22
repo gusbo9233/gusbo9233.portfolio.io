@@ -221,10 +221,10 @@ function ReaderView({ data, buckets, isOwner }: { data: LoadedData; buckets: Map
                     </p>
                   </div>
 
-                  <div className="gallery" role="list">
+                  <div className="archive-grid" role="list">
                     {section.placed.map((p) => (
-                      <div className="gallery__cell proj--narrow" role="listitem" key={p.project.id}>
-                        <ProjectCard project={p.project} />
+                      <div className="archive-grid__cell" role="listitem" key={p.project.id}>
+                        <ProjectCard project={p.project} compact />
                       </div>
                     ))}
                   </div>
