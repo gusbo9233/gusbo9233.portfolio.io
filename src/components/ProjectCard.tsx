@@ -1,5 +1,5 @@
-import type { Project } from "./lib/github";
-import { formatCompactNumber, formatDate } from "./lib/github";
+import type { Project } from "../lib/github";
+import { formatCompactNumber, formatDate } from "../lib/github";
 
 interface ProjectCardProps {
   project: Project;

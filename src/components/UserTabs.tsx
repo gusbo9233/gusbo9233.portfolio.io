@@ -1,5 +1,5 @@
 import type { MouseEvent } from "react";
-import { prefetchCvPageData, prefetchUserPageData } from "./lib/pageData";
+import { prefetchCvPageData, prefetchUserPageData } from "../lib/pageData";
 
 interface UserTabsProps {
   username: string;

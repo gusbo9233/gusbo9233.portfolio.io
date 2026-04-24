@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState, useTransition } from "react";
-import type { Project } from "./lib/github";
-import { fetchExternalRepo, formatCompactNumber, formatDate, parseRepoInput } from "./lib/github";
-import { ProjectCard } from "./ProjectCard";
+import type { Project } from "../lib/github";
+import { fetchExternalRepo, formatCompactNumber, formatDate, parseRepoInput } from "../lib/github";
+import { ProjectCard } from "../components/ProjectCard";
 import {
   createFolder,
   deleteFolder,
@@ -12,15 +12,15 @@ import {
   renameFolder,
   updateProfile,
   upsertItem,
-} from "./lib/portfolio";
-import type { Folder, PortfolioItem, Profile } from "./lib/portfolio";
+} from "../lib/portfolio";
+import type { Folder, PortfolioItem, Profile } from "../lib/portfolio";
 import {
   getCachedUserPageData,
   invalidateUserPageData,
   loadUserPageData,
   prefetchCvPageData,
-} from "./lib/pageData";
-import UserTabs from "./UserTabs";
+} from "../lib/pageData";
+import UserTabs from "../components/UserTabs";
 
 interface UserPageProps {
   username: string;

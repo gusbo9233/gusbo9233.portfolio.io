@@ -1,4 +1,4 @@
-import type { Profile } from "./lib/portfolio";
+import type { Profile } from "../lib/portfolio";
 
 interface MyPagesPageProps {
   profile: Profile | null;

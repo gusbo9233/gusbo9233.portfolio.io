@@ -1,10 +1,10 @@
 import { useEffect, useState, useSyncExternalStore } from "react";
 import { signInWithGitHub, signOut, supabase } from "./lib/supabase";
 import type { Session } from "@supabase/supabase-js";
-import UserPage from "./UserPage";
-import HomePage from "./HomePage";
-import CvPage from "./CvPage";
-import MyPagesPage from "./MyPagesPage";
+import UserPage from "./pages/UserPage";
+import HomePage from "./pages/HomePage";
+import CvPage from "./pages/CvPage";
+import MyPagesPage from "./pages/MyPagesPage";
 import { fetchMyProfile } from "./lib/portfolio";
 import type { Profile } from "./lib/portfolio";
 

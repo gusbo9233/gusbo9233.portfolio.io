@@ -1,7 +1,7 @@
 import { useState, useTransition } from "react";
 import type { Profile } from "./lib/portfolio";
 import { emptyCv, upsertCv } from "./lib/cv";
-import UserTabs from "./UserTabs";
+import UserTabs from "./components/UserTabs";
 import type {
   Cv,
   CvContactLink,

@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
-import type { Profile } from "./lib/portfolio";
-import type { Cv } from "./lib/cv";
+import type { Profile } from "../lib/portfolio";
+import type { Cv } from "../lib/cv";
 import {
   getCachedCvPageData,
   invalidateCvPageData,
   loadCvPageData,
   prefetchUserPageData,
-} from "./lib/pageData";
-import CvEdit from "./CvEdit";
-import UserTabs from "./UserTabs";
+} from "../lib/pageData";
+import CvEdit from "../CvEdit";
+import UserTabs from "../components/UserTabs";
 
 interface CvPageProps {
   username: string;

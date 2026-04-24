@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { fetchAllProfiles } from "./lib/portfolio";
-import type { Profile } from "./lib/portfolio";
+import { fetchAllProfiles } from "../lib/portfolio";
+import type { Profile } from "../lib/portfolio";
 
 export default function HomePage() {
   const [profiles, setProfiles] = useState<Profile[] | null>(null);
